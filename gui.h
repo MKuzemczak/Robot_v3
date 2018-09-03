@@ -33,6 +33,7 @@ protected:
 signals:
 
 public slots:
+    void printComBuffer();
 };
 
 #endif // GUI_H

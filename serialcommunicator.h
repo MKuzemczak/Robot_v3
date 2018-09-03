@@ -9,6 +9,8 @@
 #include "comflags.h"
 #include "thread.h"
 
+//#define DEBUG_SERIAL_COMMUNICATOR
+
 class SerialCommunicator : public QWidget
 {
     Q_OBJECT
@@ -19,13 +21,21 @@ class SerialCommunicator : public QWidget
 
     SerialPort * port;
 
+    std::string buffer;
+
     char byte;
 
 public:
     SerialCommunicator(SerialPort * p, Flags * ptr);
 
+    void clearBuffer();
+    std::string getBuffer();
+
 public slots:
     void checkForFlags();
+
+signals:
+    void bufferReadyToRead();
 };
 
 #endif // SERIALCOMMUNICATOR_H

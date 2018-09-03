@@ -26,7 +26,8 @@ SerialPort::SerialPort(char *portName, int baud)
         if (!GetCommState(this->handler, &dcbSerialParameters)) {
             printf("failed to get current serial parameters");
         }
-        else {
+        else
+        {
             switch(baud)
             {
             case 9600:
@@ -45,7 +46,8 @@ SerialPort::SerialPort(char *portName, int baud)
             {
                 printf("ALERT: could not set Serial port parameters\n");
             }
-            else {
+            else
+            {
                 this->connected = true;
                 PurgeComm(this->handler, PURGE_RXCLEAR | PURGE_TXCLEAR);
                 Sleep(ARDUINO_WAIT_TIME);
@@ -99,6 +101,16 @@ bool SerialPort::isConnected()
     return this->connected;
 }
 
+bool SerialPort::isDataToRead()
+{
+    ClearCommError(this->handler, &this->errors, &this->status);
+
+    if (this->status.cbInQue > 0)
+        return true;
+
+    return false;
+}
+
 
 SerialPort & SerialPort::operator << (std::string & s)
 {
@@ -141,6 +153,13 @@ SerialPort & SerialPort::operator << (double s)
     a = std::to_string(s);
 
     writeSerialPort(a.c_str(), a.size());
+
+    return *this;
+}
+
+SerialPort & SerialPort::operator << (const char s)
+{
+    writeSerialPort(&s, 1);
 
     return *this;
 }

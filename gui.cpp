@@ -11,6 +11,8 @@ GUI::GUI(QWidget *parent) :
 
      com = new SerialCommunicator(&arduinoPort, &flags);
 
+     connect(com, SIGNAL(bufferReadyToRead()), this, SLOT(printComBuffer()));
+
      if(arduinoPort.isConnected())
      {
         arduinoPort << "A";
@@ -58,4 +60,11 @@ void GUI::keyPressEvent(QKeyEvent *e)
             qDebug() << buf;
         }
     }
+}
+
+void GUI::printComBuffer()
+{
+    qDebug() << com->getBuffer().c_str();
+
+    com->clearBuffer();
 }
