@@ -8,7 +8,6 @@
 #include <iostream>
 
 #include "serialport.h"
-#include "lista.h"
 #include "comflags.h"
 #include "serialcommunicator.h"
 

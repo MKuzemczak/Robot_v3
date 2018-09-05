@@ -2,7 +2,7 @@ TARGET = Robot_v3
 
 QT = core gui
 
-QMAKE_CXXFLAGS += -pedantic
+QMAKE_CXXFLAGS +=
 
 CONFIG += c++14 strict_c++
 
@@ -13,7 +13,15 @@ SOURCES += \
     main.cpp \
     serialport.cpp \
     thread.cpp \
-    serialcommunicator.cpp
+    serialcommunicator.cpp \
+    joint.cpp \
+    robot.cpp \
+    baseaction.cpp \
+    straightlinemovaction.cpp \
+    freemovaction.cpp \
+    setsinglejointaction.cpp \
+    consttcporientaction.cpp \
+    actionmanager.cpp
 
 HEADERS += \
     gui.h \
@@ -22,4 +30,8 @@ HEADERS += \
     lista.h \
     comflags.h \
     thread.h \
-    serialcommunicator.h
+    serialcommunicator.h \
+    joint.h \
+    robot.h \
+    baseaction.h \
+    actionmanager.h
