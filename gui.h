@@ -7,22 +7,21 @@
 
 #include <iostream>
 
-#include "serialport.h"
-#include "comflags.h"
+#include "program.h"
 #include "serialcommunicator.h"
+#include "actionmanager.h"
 
 class GUI : public QWidget
 {
     Q_OBJECT
 
-    Flags flags;
+    QThread programThread;
 
-    SerialPort arduinoPort;
-
-    SerialCommunicator * com;
+    Program * program;
 
 public:
     explicit GUI(QWidget *parent = nullptr);
+    ~GUI();
 
 
 protected:
@@ -31,8 +30,9 @@ protected:
 
 signals:
 
+    void keyPressed(int key);
+
 public slots:
-    void printComBuffer();
 };
 
 #endif // GUI_H

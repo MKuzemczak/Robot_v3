@@ -1,7 +1,7 @@
 #include "serialcommunicator.h"
 
 
-SerialCommunicator::SerialCommunicator(SerialPort * p, Flags * ptr)
+SerialCommunicatorThread::SerialCommunicatorThread(SerialPort * p, Flags * ptr)
 {
 #ifdef DEBUG_SERIAL_COMMUNICATOR
     qDebug() << "SerialCommunicator::SerialCommunicator(...) : poczatek";
@@ -14,9 +14,9 @@ SerialCommunicator::SerialCommunicator(SerialPort * p, Flags * ptr)
 
     buffer = "";
 
-    thread = new Thread();
-    connect(thread, SIGNAL(loop()), this, SLOT(checkForFlags()));
-    thread->start();
+    //thread = new Thread();
+    //connect(thread, SIGNAL(loop()), this, SLOT(checkForFlags()));
+    //thread->start();
 
 
 
@@ -26,9 +26,10 @@ SerialCommunicator::SerialCommunicator(SerialPort * p, Flags * ptr)
 }
 
 
-void SerialCommunicator::checkForFlags()
+void SerialCommunicatorThread::run()
 {
-    if(port->isConnected())
+
+    while(port->isConnected())
     {
         if(port->isDataToRead())
         {
@@ -45,7 +46,10 @@ void SerialCommunicator::checkForFlags()
             else
             {
                 if(byte == '\n')
-                    emit bufferReadyToRead();
+                {
+                    emit bufferReadyToRead(buffer);
+                    clearBuffer();
+                }
                 else
                 {
                     buffer += byte;
@@ -58,15 +62,16 @@ void SerialCommunicator::checkForFlags()
         }
     }
 
+    emit portDisconnected();
 }
 
 
-void SerialCommunicator::clearBuffer()
+void SerialCommunicatorThread::clearBuffer()
 {
     buffer = "";
 }
 
-std::string SerialCommunicator::getBuffer()
+std::string SerialCommunicatorThread::getBuffer()
 {
     return buffer;
 }

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <QWidget>
 #include <QDebug>
+#include <QThread>
 
 #include "serialport.h"
 #include "comflags.h"
@@ -11,13 +12,13 @@
 
 //#define DEBUG_SERIAL_COMMUNICATOR
 
-class SerialCommunicator : public QWidget
+class SerialCommunicatorThread : public QThread
 {
     Q_OBJECT
 
     Flags * flags;
 
-    Thread * thread;
+    //Thread * thread;
 
     SerialPort * port;
 
@@ -25,17 +26,20 @@ class SerialCommunicator : public QWidget
 
     char byte;
 
+    void run() override;
+
 public:
-    SerialCommunicator(SerialPort * p, Flags * ptr);
+    SerialCommunicatorThread(SerialPort * p, Flags * ptr);
 
     void clearBuffer();
     std::string getBuffer();
 
 public slots:
-    void checkForFlags();
+
 
 signals:
-    void bufferReadyToRead();
+    void bufferReadyToRead(std::string);
+    void portDisconnected();
 };
 
 #endif // SERIALCOMMUNICATOR_H

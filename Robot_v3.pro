@@ -21,7 +21,8 @@ SOURCES += \
     freemovaction.cpp \
     setsinglejointaction.cpp \
     consttcporientaction.cpp \
-    actionmanager.cpp
+    actionmanager.cpp \
+    program.cpp
 
 HEADERS += \
     gui.h \
@@ -34,4 +35,5 @@ HEADERS += \
     joint.h \
     robot.h \
     baseaction.h \
-    actionmanager.h
+    actionmanager.h \
+    program.h
