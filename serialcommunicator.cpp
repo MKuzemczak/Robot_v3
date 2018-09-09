@@ -26,6 +26,8 @@ SerialCommunicatorThread::SerialCommunicatorThread(SerialPort * p, Flags * ptr)
 }
 
 
+
+
 void SerialCommunicatorThread::run()
 {
 

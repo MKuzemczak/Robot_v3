@@ -27,7 +27,7 @@ void StraightLineMovAction::calculate(Robot & robot)
 #endif // DEBUG
 
 
-        for (int i = 0; i < path.size(); i++)
+        for (int i = 0; i < static_cast<int>(path.size()); i++)
         {
 #ifdef DEBUG_STRAIGHT_LINE_ACTION
                 qDebug("Straight Line Action, calculate(), poczatek petli\n");
@@ -66,6 +66,8 @@ void StraightLineMovAction::calculate(Robot & robot)
 
         setCalculated();
         resetDone();
+        emit calculationsFinished();
+        moveToThread(getParentThreadPtr());
 }
 
 void StraightLineMovAction::execute()
@@ -75,7 +77,7 @@ void StraightLineMovAction::execute()
 
         s = "B";
 
-        for (int j = 0; j < pathInServoDegs[0].size(); j++)
+        for (int j = 0; j < static_cast<int>(pathInServoDegs[0].size()); j++)
         {
                 s += std::to_string(pathInServoDegs[0][j]) + "\n";
 
@@ -114,7 +116,7 @@ void StraightLineMovAction::lerp(Lista<Eigen::Vector3d> & path)
 
         double number = vmod / 10;
 
-        int loops = (int)number;
+        int loops = static_cast<int>(number);
 
         v.normalize();
 
@@ -131,5 +133,5 @@ void StraightLineMovAction::lerp(Lista<Eigen::Vector3d> & path)
 
 int StraightLineMovAction::size()
 {
-        return (int)pathInServoDegs.size();
+        return static_cast<int>(pathInServoDegs.size());
 }

@@ -1,19 +1,19 @@
 #include "serialport.h"
 
-SerialPort::SerialPort(char *portName, int baud)
+SerialPort::SerialPort(std::string portName, int baud)
 {
     this->connected = false;
 
-    this->handler = CreateFileA(static_cast<LPCSTR>(portName),
+    this->handler = CreateFileA(static_cast<LPCSTR>(portName.c_str()),
                                 GENERIC_READ | GENERIC_WRITE,
                                 0,
-                                NULL,
+                                nullptr,
                                 OPEN_EXISTING,
                                 FILE_ATTRIBUTE_NORMAL,
-                                NULL);
+                                nullptr);
     if (this->handler == INVALID_HANDLE_VALUE){
         if (GetLastError() == ERROR_FILE_NOT_FOUND){
-            printf("ERROR: Handle was not attached. Reason: %s not available\n", portName);
+            printf("ERROR: Handle was not attached. Reason: %s not available\n", portName.c_str());
         }
     else
         {
@@ -21,7 +21,7 @@ SerialPort::SerialPort(char *portName, int baud)
         }
     }
     else {
-        DCB dcbSerialParameters = {0};
+        DCB dcbSerialParameters = {};
 
         if (!GetCommState(this->handler, &dcbSerialParameters)) {
             printf("failed to get current serial parameters");
@@ -80,7 +80,7 @@ int SerialPort::readSerialPort(char *buffer, unsigned int buf_size)
 
     memset(buffer, 0, buf_size);
 
-    if (ReadFile(this->handler, buffer, toRead, &bytesRead, NULL)) return bytesRead;
+    if (ReadFile(this->handler, buffer, toRead, &bytesRead, nullptr)) return static_cast<int>(bytesRead);
 
     return 0;
 }
@@ -89,7 +89,7 @@ bool SerialPort::writeSerialPort(const char *buffer, unsigned int buf_size)
 {
     DWORD bytesSend;
 
-    if (!WriteFile(this->handler, (void*) buffer, buf_size, &bytesSend, 0)){
+    if (!WriteFile(this->handler, (void*) buffer, buf_size, &bytesSend, nullptr)){
         ClearCommError(this->handler, &this->errors, &this->status);
         return false;
     }

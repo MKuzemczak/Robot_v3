@@ -1,3 +1,4 @@
+
 #include "actionmanager.h"
 
 
@@ -8,16 +9,17 @@ ActionManager::ActionManager()
     checkCalculations = false;
     started = false;
     actionCntr = 0;
-    robotPtr = NULL;
+    robotPtr = nullptr;
 }
 
-ActionManager::ActionManager(Flags * f, SerialPort * arduino)
+ActionManager::ActionManager(Flags * f, SerialPort * arduino, QObject * parent) :
+    QObject (parent)
 {
     stepInProgress = false;
     checkCalculations = false;
     started = false;
     actionCntr = 0;
-    robotPtr = NULL;
+    robotPtr = nullptr;
 
     flags = f;
     arduinoPort = arduino;
@@ -35,7 +37,7 @@ bool ActionManager::start()
         qDebug("Error: ActionManager::start() : actions.size() == 0\n");
         return false;
     }
-    if (robotPtr == NULL)
+    if (robotPtr == nullptr)
     {
         qDebug("Error: ActionManager::start() : robotPtr == NULL\n");
         return false;
@@ -44,8 +46,17 @@ bool ActionManager::start()
     actions[0]->calculate(*robotPtr);
     started = true;
     checkCalculations = true;
+    calculations();
+
+    nextStep();
 
     return true;
+}
+
+void ActionManager::stop()
+{
+    started = false;
+    checkCalculations = false;
 }
 
 /*
@@ -54,18 +65,18 @@ bool ActionManager::start()
  **/
 void ActionManager::nextStep()
 {
-    if (!stepInProgress)
+    if (!stepInProgress && started && static_cast<int>(actions.size()) > 0)
     {
 
         stepInProgress = true;
 
         #ifdef DEBUG_ACTION_MANAGER
         //qDebug("ActionManager::nextStep() : poczatek\nactions.size() == %d,"
-        "actionCntr == %d\n", (int)actions.size(), actionCntr);
+        //"actionCntr == %d\n", (int)actions.size(), actionCntr);
         #endif // DEBUG_ACTION_MANAGER
 
 
-        if(actions.size() > 0 && actions[actionCntr]->size() > 0)
+        if(actions[actionCntr]->size() > 0)
         {
             actions[actionCntr]->execute();
 
@@ -77,14 +88,21 @@ void ActionManager::nextStep()
         }
 
 
-        if (actions[actionCntr]->isDone() && actions[((actionCntr < actions.size() - 1) ? (actionCntr + 1) : 0)]->isCalculated())
+        if (actions[actionCntr]->isDone() && actions[((actionCntr < static_cast<int>(actions.size()) - 1) ? (actionCntr + 1) : 0)]->isCalculated())
         {
             actionCntr++;
             checkCalculations = true;
+            calculations();
         }
 
-        if (flags->isSet(LOOP) && actionCntr == (int)actions.size())
+        if (flags->isSet(LOOP) && actionCntr == static_cast<int>(actions.size()))
+        {
             actionCntr = 0;
+
+#ifdef DEBUG_ACTION_MANAGER
+            qDebug() << "ActionManager::nextStep() : LOOP";
+#endif
+        }
 
         #ifdef DEBUG_ACTION_MANAGER
         //qDebug("ActionManager::execute() : koniec\n");
@@ -101,27 +119,42 @@ void ActionManager::calculations()
     qDebug("ActionManager::calculations() : actionCntr + 1 == %d", actionCntr + 1 );
 #endif // DEBUG_ACTION_MANAGER
 
-    if (actionCntr < (int)actions.size() - 1)
+    int number;
+    bool go = false;
+
+    if (actionCntr < static_cast<int>(actions.size()) - 1)
     {
-        if (!actions[actionCntr + 1]->isCalculated())
-        {
-            actions[actionCntr + 1]->calculate(*robotPtr);
-
-#ifdef DEBUG_ACTION_MANAGER
-            qDebug("ActionManager::calculations() : calc + 1\n");
-#endif // DEBUG_ACTION_MANAGER
-
-        }
+        number = actionCntr + 1;
+        go = true;
 
     }
     else if (flags->isSet(LOOP))
     {
-        if (!actions[0]->isCalculated())
+        number = 0;
+        go = true;
+    }
+
+    if(go)
+    {
+        if (!actions[number]->isCalculated())
         {
-            actions[0]->calculate(*robotPtr);
+            actions[number]->moveToThread(&calculationThread);
+
+            connect(this, SIGNAL(startActionCalculations(Robot *)),
+                    actions[number], SLOT(calcSlot(Robot *)));
+
+            connect(actions[number], SIGNAL(calculationsFinished()),
+                    this, SLOT(stopCalculationThread()));
+
+            currentlyCalculated = actions[number];
+
+            calculationThread.start();
+
+            emit startActionCalculations(robotPtr);
+            //actions[number]->calculate(*robotPtr);
 
 #ifdef DEBUG_ACTION_MANAGER
-            qDebug("ActionManager::calculations() : calc 0\n");
+            qDebug("ActionManager::calculations() : calc + 1\n");
 #endif // DEBUG_ACTION_MANAGER
 
         }
@@ -131,16 +164,35 @@ void ActionManager::calculations()
 
 }
 
+void ActionManager::stopCalculationThread()
+{
+    calculationThread.quit();
+//  currentlyCalculated->moveToThread(this->thread());
+
+    disconnect(currentlyCalculated, SIGNAL(calculationsFinished()), nullptr, nullptr);
+    disconnect(this, SIGNAL(startActionCalculations(Robot *)), nullptr, nullptr);
+
+    currentlyCalculated = nullptr;
+}
+
 ////////////////////////////////////////////////////////// setters & getters & adders
 
 void ActionManager::setFlagsPtr(Flags * ptr)
 {
     flags = ptr;
 
-    //TODO: petla przeleciec tutaj przez wszystkie akcje i zmienic w nich wskaznik na flags
+    for(int i = 0; i < static_cast<int>(actions.size()); i++)
+    {
+        actions[i]->setFlagsPtr(ptr);
+    }
 }
 
 void ActionManager::setArduinoPortPtr(SerialPort * ptr)
 {
     arduinoPort = ptr;
+
+    for(int i = 0; i < static_cast<int>(actions.size()); i++)
+    {
+        actions[i]->setArduinoPortPtr(ptr);
+    }
 }

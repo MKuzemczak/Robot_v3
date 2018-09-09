@@ -21,6 +21,9 @@ void FreeMovAction::calculate(Robot & robot)
     robot.setRegional(destination);
 
     robot.mapThetasToServos(destInServoDegs);
+
+    emit calculationsFinished();
+    moveToThread(getParentThreadPtr());
 }
 
 void FreeMovAction::execute()

@@ -30,7 +30,7 @@ void ConstTCPOrientAction::calculate(Robot & robot)
 
 
 
-    for (int i = 0; i < (int)path.size(); i++)
+    for (int i = 0; i < static_cast<int>(path.size()); i++)
     {
         Eigen::Vector3d jointLoc;
 
@@ -50,6 +50,8 @@ void ConstTCPOrientAction::calculate(Robot & robot)
 
     setCalculated();
     resetDone();
+    emit calculationsFinished();
+    moveToThread(getParentThreadPtr());
 }
 
 void ConstTCPOrientAction::execute()
@@ -59,7 +61,7 @@ void ConstTCPOrientAction::execute()
 
     s = "B";
 
-    for (int j = 0; j < (int)pathInServoDegs[0].size(); j++)
+    for (int j = 0; j < static_cast<int>(pathInServoDegs[0].size()); j++)
     {
         s += std::to_string(pathInServoDegs[0][j]) + "\n";
 
@@ -92,7 +94,7 @@ void ConstTCPOrientAction::lerp(Lista<Eigen::Vector3d> & path)
 
     double number = vmod / 10;
 
-    int loops = (int)number;
+    int loops = static_cast<int>(number);
 
     v.normalize();
 
@@ -109,5 +111,5 @@ void ConstTCPOrientAction::lerp(Lista<Eigen::Vector3d> & path)
 
 int ConstTCPOrientAction::size()
 {
-    return (int)pathInServoDegs.size();
+    return static_cast<int>(pathInServoDegs.size());
 }

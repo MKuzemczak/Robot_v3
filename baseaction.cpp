@@ -6,6 +6,13 @@ BaseAction::BaseAction()
     done = false;
 }
 
+BaseAction::BaseAction(QObject * parent) :
+    QObject(parent)
+{
+    calculated = false;
+    done = false;
+}
+
 BaseAction::~BaseAction()
 {
 
@@ -13,7 +20,12 @@ BaseAction::~BaseAction()
 
 void BaseAction::calculate(Robot & robot)
 {
+    robot.getDOF();
+}
 
+void BaseAction::calcSlot(Robot * robot)
+{
+    calculate(*robot);
 }
 
 void BaseAction::execute()
@@ -23,7 +35,7 @@ void BaseAction::execute()
 
 int BaseAction::size()
 {
-
+    return 0;
 }
 
 void BaseAction::setDone()
@@ -77,4 +89,14 @@ void BaseAction::setFlagsPtr(Flags * ptr)
 Flags * BaseAction::flags()
 {
     return flagsPtr;
+}
+
+void BaseAction::setParentThreadPtr(QThread * ptr)
+{
+    parentThreadPtr = ptr;
+}
+
+QThread * BaseAction::getParentThreadPtr()
+{
+    return parentThreadPtr;
 }

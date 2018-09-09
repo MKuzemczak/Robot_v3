@@ -3,6 +3,7 @@
 
 
 #include <list>
+#include <QDebug>
 
 template<typename T>
     class Lista : public std::list<T>
@@ -10,6 +11,11 @@ template<typename T>
     public:
         T & operator [](const int index)
         {
+            if(index < 0 || index > static_cast<int>(this->size()) - 1)
+            {
+                qDebug() << "Lista::operator [](const int) : index out of bounds, index == " << index;
+            }
+
             int i = 0;
             for (T & r : (*this))
             {
@@ -17,6 +23,8 @@ template<typename T>
                     return r;
                 i++;
             }
+
+            return this->front();
         }
 
         void erase(int index)
@@ -38,6 +46,11 @@ template<typename T>
 
         auto iteratorAt(int i)
         {
+            if(i < 0 || i > static_cast<int>(this->size()) - 1)
+            {
+                qDebug() << "Lista::iteratorAt(int) : index out of bounds";
+            }
+
             int j = 0;
             for (auto it = (*this).begin(); j <= i; it++)
             {
@@ -46,6 +59,8 @@ template<typename T>
 
                 j++;
             }
+
+            return this->end();
         }
     };
 

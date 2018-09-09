@@ -7,60 +7,32 @@ Program::Program() :
      if (arduinoPort.isConnected()) std::cout << "Connection Established" << std::endl;
      else std::cout << "ERROR, check port name";
 
-     com = new SerialCommunicatorThread(&arduinoPort, &flags);
+     flags = new Flags(this);
+
+     com = new SerialCommunicatorThread(&arduinoPort, flags);
 
      connect(com, SIGNAL(bufferReadyToRead(std::string)), this, SLOT(print(std::string)));
 
      com->start();
+
+     manager = new ActionManager(flags, &arduinoPort, this);
 
      if(arduinoPort.isConnected())
      {
         arduinoPort << "A";
 
         QThread::msleep(3000);
-
-        arduinoPort << "B350\n382\n347\n355\n364\n362\nC";
-
-        QThread::msleep(3000);
-
-        arduinoPort << "B200\n382\n347\n355\n364\n362\nC";
-
-
-        std::cout << "after second sleep" << std::endl;
-
-        if(flags.isSet(ARDUINO_MOV_FIN))
-            std::cout << "flag set\n";
      }
 
      std::cout << "Program::Program() : koniec" << std::endl;
 
+     connect(flags, SIGNAL(movFinReceived()), manager, SLOT(nextStep()));
+
+
+
 }
 
 
-void Program::keyPressEvent(QKeyEvent *e)
-{
-    if(e->key() == Qt::Key_W && !(e->isAutoRepeat()))
-    {
-        qDebug() << "W pressed";
-
-        arduinoPort << "B200\n382\n347\n355\n364\n300\nC";
-
-        if(flags.isSet(ARDUINO_MOV_FIN))
-            qDebug() << "Mov fin";
-    }
-
-    if(e->key() == Qt::Key_S)
-    {
-        qDebug() << "S pressed";
-        char buf[MAX_DATA_LENGTH];
-
-        if(arduinoPort.readSerialPort(buf, MAX_DATA_LENGTH) != 0)
-        {
-            qDebug() << "hehe";
-            qDebug() << buf;
-        }
-    }
-}
 
 void Program::print(std::string s)
 {
@@ -76,7 +48,7 @@ void Program::keyPressed(int key)
 
         arduinoPort << "B200\n382\n347\n355\n364\n300\nC";
 
-        if(flags.isSet(ARDUINO_MOV_FIN))
+        if(flags->isSet(ARDUINO_MOV_FIN))
             qDebug() << "Mov fin";
     }
 
@@ -90,7 +62,80 @@ void Program::keyPressed(int key)
             qDebug() << "hehe";
             qDebug() << buf;
         }
+
+        qDebug() << "Threads:\nMain: " << QApplication::instance()->thread()
+                 << "\nProgram: " << this->thread()
+                 << "\nmanager: " << manager->thread();
     }
+}
+
+void Program::testRobotInit()
+{
+#ifdef PROGRAM_DEBUG
+    qDebug() << "Program::testRObotInit() : start";
+#endif
+
+
+    robot.addRegJoint(-90, 0, 0);
+    robot.addRegJoint(90, 0, 0);
+    robot.addRegJoint(0, 150, 0);
+    robot.addLocJoint(90, 0, 0);
+    robot.addLocJoint(-90, 0, 93);
+    robot.setTCPaLength(90);
+
+    robot.setThetaDeg(1, 90);
+    robot.setThetaDeg(4, -90);
+
+    robot.addJointServoMinMax(0, 555, 150);
+    robot.addJointServoMinMax(1, 178, 593);
+    robot.addJointServoMinMax(1, 545, 154);
+    robot.addJointServoMinMax(2, 560, 160);
+    robot.addJointServoMinMax(3, 570, 165);
+    robot.addJointServoMinMax(4, 160, 570);
+
+    robot.setJointConstructionMinMax(0, -90, 90);
+    robot.setJointConstructionMinMax(1, 20, 150);
+    robot.setJointConstructionMinMax(2, -45, 45);
+    robot.setJointConstructionMinMax(3, -90, 90);
+    robot.setJointConstructionMinMax(4, -160, -20);
+
+    robot.setJointConversionMinMax(0, -90, 90);
+    robot.setJointConversionMinMax(1, 0, 180);
+    robot.setJointConversionMinMax(2, -90, 90);
+    robot.setJointConversionMinMax(3, -90, 90);
+    robot.setJointConversionMinMax(4, -180, 0);
+
+    arduinoPort << "B350\n382\n347\n355\n364\n362\nC";
+
+#ifdef PROGRAM_DEBUG
+    qDebug() << "Program::testRobotInit() : end";
+#endif
+
+}
+
+void Program::testRun()
+{
+#ifdef PROGRAM_DEBUG
+    qDebug() << "Program::testRun() : start";
+#endif
+
+    flags->set(LOOP);
+
+    Eigen::Vector3d v0, v1;
+
+    v0 << 183, 100, 100;
+    v1 << 183, 100, -100;
+
+    manager->addConstTCPOrientAction(robot.getTCPlocation(), v0);
+    manager->addConstTCPOrientAction(v0, v1);
+
+    manager->setRobotPtr(&robot);
+
+    manager->start();
+
+#ifdef PROGRAM_DEBUG
+    qDebug() << "Program::testRun() : end";
+#endif
 }
 
 Program::~Program()

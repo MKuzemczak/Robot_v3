@@ -10,13 +10,15 @@
 #include "serialcommunicator.h"
 #include "actionmanager.h"
 
-Q_DECLARE_METATYPE(std::string)
+#define PROGRAM_DEBUG
+
+
 
 class Program : public QObject
 {
     Q_OBJECT
 
-    Flags flags;
+    Flags * flags;
 
     SerialPort arduinoPort;
 
@@ -24,15 +26,13 @@ class Program : public QObject
 
     ActionManager * manager;
 
-    Robot * robot;
+    Robot robot;
 
 public:
     Program();
     ~Program();
 
 
-protected:
-    void keyPressEvent(QKeyEvent *e);
 
 
 signals:
@@ -40,6 +40,8 @@ signals:
 public slots:
     void print(std::string s);
     void keyPressed(int);
+    void testRobotInit();
+    void testRun();
 };
 
 #endif // PROGRAM_H

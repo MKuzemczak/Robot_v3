@@ -19,7 +19,7 @@ void Robot::updateDHmatrices()
 {
     double sT, cT, sa, ca, aLength, dLength;
 
-    for (int i = 0; i < (int)joints.size(); i++)
+    for (int i = 0; i < static_cast<int>(joints.size()); i++)
     {
         Matrix4d & DHmatrix = joints[i]->getDHmatrix();
 
@@ -65,7 +65,7 @@ void Robot::updateDHvectors()
 
     m = Matrix4d::Identity();
 
-    for (int i = 0; i < (int)joints.size(); i++)
+    for (int i = 0; i < static_cast<int>(joints.size()); i++)
     {
         m *= joints[i]->getDHmatrix();
 
@@ -95,14 +95,14 @@ bool Robot::jacobian(Eigen::MatrixXd & jacobM, int indexOfSetJoint/*Lista<Joint>
     if (indexOfSetJoint != jacobM.cols())
     {
         qDebug("jacobian: ilosc przegubow i ilosc kolumn w macierzy jakobianowej nie sa sobie rowne!\n");
-        qDebug("Przeguby: %d, kolumny: %d\n", (int)joints.size(), (int)jacobM.cols());
+        qDebug("Przeguby: %d, kolumny: %d\n", static_cast<int>(joints.size()), static_cast<int>(jacobM.cols()));
         return false;
     }
 
     if (jacobM.rows() != 3)
     {
         qDebug("Macierz jakobiego nie sklada sie z trzech wierszy (z wektorow 3D)!\n");
-        qDebug("jacobM.cols(): %d\n", (int)jacobM.cols());
+        qDebug("jacobM.cols(): %d\n", static_cast<int>(jacobM.cols()));
         return false;
     }
 
@@ -258,17 +258,17 @@ bool Robot::jacobian(Eigen::MatrixXd & jacobM, int startJoint, int endJoint, int
 {
     int amount = endJoint - startJoint + 1;
 
-    if (setJoint != jacobM.cols())
+    if (amount != jacobM.cols())
     {
         qDebug("jacobian: ilosc przegubow i ilosc kolumn w macierzy jakobianowej nie sa sobie rowne!\n");
-        qDebug("Przeguby: %d, kolumny: %d\n", (int)joints.size(), (int)jacobM.cols());
+        qDebug("Przeguby: %d, kolumny: %d\n", amount, static_cast<int>(jacobM.cols()));
         return false;
     }
 
     if (jacobM.rows() != 3)
     {
         qDebug("Macierz jakobiego nie sklada sie z trzech wierszy (z wektorow 3D)!\n");
-        qDebug("jacobM.cols(): %d\n", (int)jacobM.cols());
+        qDebug("jacobM.cols(): %d\n", static_cast<int>(jacobM.cols()));
         return false;
     }
 
@@ -300,9 +300,9 @@ bool Robot::set(Eigen::Vector3d & point)
     updateDHmatrices();
     updateDHvectors();
 
-    while ((double)(point - TCP.getLocation()).norm() > 1)
+    while (static_cast<double>((point - TCP.getLocation()).norm()) > 1)
     {
-        if(!jacobAlgStep(1, joints.size() - 1, point))
+        if(!jacobAlgStep(1, static_cast<int>(joints.size()) - 1, point))
             return false;
     }
 
@@ -318,31 +318,27 @@ bool Robot::set(int startJoint, int endJoint, int setJoint, Eigen::Vector3d & po
     updateDHmatrices();
     updateDHvectors();
 
-    while ((double)(point - joints[setJoint]->getLocation()).norm() > 1)
+    while (static_cast<double>((point - joints[setJoint]->getLocation()).norm()) > 1)
     {
+        if(!jacobAlgStep(1, startJoint, endJoint, setJoint, point))
+            return false;
+
+
 #ifdef DEBUG_ROBOT
-        if (!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin))
+        qDebug("Robot::set(int, int, int, Eigen::Vector3d &), koniec petli\n");
+        qDebug("startJoint == %d, endJoint == %d, setJoint == %d\n",
+               startJoint, endJoint, setJoint);
+        qDebug() << "point:\n" << point;
+        qDebug() << "Joints:";
+        for (int i = 0; i < static_cast<int>(joints.size()); i++)
         {
-#endif // DEBUG
-            if(!jacobAlgStep(1, startJoint, endJoint, setJoint, point))
-                return false;
-
-
-#ifdef DEBUG_ROBOT
-            qDebug("Robot::set(int, int, int, Eigen::Vector3d &), koniec petli\n");
-            qDebug("startJoint == %d, endJoint == %d, setJoint == %d\n",
-                    startJoint, endJoint, setJoint);
-            qDebug() << "point:\n" << point;
-            qDebug() << "Joints:";
-            for (int i = 0; i < joints.size(); i++)
-            {
-                qDebug() << "Joint " << i << ":\n"
-                         << joints[i]->getLocation()
-                         << "Theta == "
-                         << joints[i]->getTheta() / DEG_TO_RAD
-                         << "\n\n";
-            }
+            qDebug() << "Joint " << i << ":\n"
+                     << joints[i]->getLocation()
+                     << "Theta == "
+                     << joints[i]->getTheta() / DEG_TO_RAD
+                     << "\n\n";
         }
+
 #endif // DEBUG_ROBOT
     }
 
@@ -359,9 +355,9 @@ bool Robot::setRegional(Eigen::Vector3d & point)
 #endif // DEBUG_ROBOT
 
 
-    while ((double)(point - TCP.getLocation()).norm() > 1)
+    while (static_cast<double>((point - TCP.getLocation()).norm()) > 1)
     {
-        if(!jacobAlgStep(1, 0, regJoints.size() - 1, joints.size() - 1, point))
+        if(!jacobAlgStep(1, 0, static_cast<int>(regJoints.size()) - 1, static_cast<int>(joints.size()) - 1, point))
             return false;
 
 #ifdef DEBUG_ROBOT
@@ -375,7 +371,7 @@ bool Robot::setRegional(Eigen::Vector3d & point)
 
 void Robot::mapThetasToServos(Lista<int> & lista)
 {
-    for (int i = 0; i < (int)joints.size() - 1; i++)
+    for (int i = 0; i < static_cast<int>(joints.size()) - 1; i++)
     {
         joints[i]->mapThetaToServo(lista);
     }
@@ -446,7 +442,8 @@ void Robot::addRegJoint(double a, double al, double dl)
     regJoints.push_back(Joint(a * DEG_TO_RAD, al, dl));
 
     // dodanie do listy wszystkich przegubow wskaznik na teraz dodawany
-    joints.insert(joints.iteratorAt(regJoints.size() - 1), &(regJoints[regJoints.size() - 1]));
+    joints.insert(joints.iteratorAt(static_cast<int>(regJoints.size()) - 1),
+                  &(regJoints[static_cast<int>(regJoints.size()) - 1]));
 
     DOF++;
 
@@ -458,7 +455,8 @@ void Robot::addLocJoint(double a, double al, double dl)
 {
     locJoints.push_back(Joint(a * DEG_TO_RAD, al, dl));
 
-    joints.insert(joints.iteratorAt(joints.size() - 1), &(locJoints[locJoints.size() - 1]));
+    joints.insert(joints.iteratorAt(static_cast<int>(joints.size()) - 1),
+                  &(locJoints[static_cast<int>(locJoints.size()) - 1]));
 
     DOF++;
 
@@ -504,11 +502,11 @@ int Robot::getJointServoAmount(int joint)
 
 int Robot::getRegJointsAmount()
 {
-    return regJoints.size();
+    return static_cast<int>(regJoints.size());
 }
 int Robot::getLocJointsAmount()
 {
-    return locJoints.size();
+    return static_cast<int>(locJoints.size());
 }
 
 //////////////////////////////////////////////////////////////////// !setters & getters & adders

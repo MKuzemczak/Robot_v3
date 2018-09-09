@@ -20,7 +20,7 @@ private:
     COMSTAT status;
     DWORD errors;
 public:
-    SerialPort(char *portName, int baud);
+    SerialPort(std::string portName, int baud);
     ~SerialPort();
 
     int readSerialPort(char *buffer, unsigned int buf_size);

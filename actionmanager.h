@@ -1,13 +1,18 @@
 #pragma once
 
+#include <QThread>
+#include <QApplication>
+
 
 #include "baseaction.h"
 #include "lista.h"
 
-//#define DEBUG_ACTION_MANAGER
+#define DEBUG_ACTION_MANAGER
 
-class ActionManager
+class ActionManager : public QObject
 {
+    Q_OBJECT
+
     Lista<BaseAction*> actions;
     bool stepInProgress,
         checkCalculations,
@@ -18,30 +23,36 @@ class ActionManager
 
     Flags * flags;
     SerialPort * arduinoPort;
+
+    BaseAction * currentlyCalculated;
+
+    QThread calculationThread;
+
 public:
     ActionManager();
-    ActionManager(Flags * f, SerialPort * arduino);
+    ActionManager(Flags * f, SerialPort * arduino, QObject * parent);
     ~ActionManager();
 
-    bool start();
-    void nextStep();
     void calculations();
+
 
 
     int size()
     {
-        return actions.size();
+        return static_cast<int>(actions.size());
     }
 
     void addStraightLineMovAction(Eigen::Vector3d & start,
                                   Eigen::Vector3d & dest)
     {
         actions.push_back(new StraightLineMovAction(start, dest, arduinoPort, flags));
+        actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
     }
 
     void addFreeMovAction(Eigen::Vector3d & dest)
     {
         actions.push_back(new FreeMovAction(dest, arduinoPort, flags));
+        actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
     }
 
     void addArchMovAction(Eigen::Vector3d start,
@@ -49,12 +60,19 @@ public:
                           Eigen::Vector3d dest)
     {
         actions.push_back(new ArchMovAction(start, inter, dest, arduinoPort, flags));
+        actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
     }
 
     void addConstTCPOrientAction(Eigen::Vector3d & start,
                                  Eigen::Vector3d & dest)
     {
         actions.push_back(new ConstTCPOrientAction(start, dest, arduinoPort, flags));
+        actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
+
+#ifdef DEBUG_ACTION_MANAGER
+        qDebug() << "ActionManager::addConstTCPOrientAction() : added thread: "
+                 << actions[static_cast<int>(actions.size()) - 1]->thread();
+#endif
     }
 
     bool isCheckCalculations()
@@ -72,12 +90,16 @@ public:
         return started;
     }
 
-    void stop()
-    {
-        started = false;
-    }
-
     void setFlagsPtr(Flags * ptr);
     void setArduinoPortPtr(SerialPort * ptr);
+
+public slots:
+    void stopCalculationThread();
+    void nextStep();
+    void stop();
+    bool start();
+
+signals:
+    void startActionCalculations(Robot *);
 };
 

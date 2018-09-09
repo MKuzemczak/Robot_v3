@@ -7,6 +7,8 @@
 #include <EigenLib/Eigen/Dense>
 #include <EigenLib/Eigen/LU>
 
+#include <QDebug>
+
 #include "serialport.h"
 
 
@@ -33,6 +35,27 @@ template <typename Scalar, int RowsAtCompileTime, int ColsAtCompileTime>
 
         return port;
     }
+
+template <typename Scalar, int RowsAtCompileTime, int ColsAtCompileTime>
+    QDebug & operator << (QDebug & port, Eigen::Matrix< Scalar, RowsAtCompileTime, ColsAtCompileTime> &m)
+    {
+        std::string s;
+
+        for (int i = 0, rows = m.rows(), cols = m.cols(); i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
+            {
+                s.append(std::to_string(m(i,j)));
+                s.append("  ");
+            }
+            s.append("\n");
+        }
+
+        port << s.c_str();
+
+        return port;
+    }
+
 
 template <typename Scalar, int RowsAtCompileTime, int ColsAtCompileTime>
     void printNumbers(SerialPort & port, Eigen::Matrix< Scalar, RowsAtCompileTime, ColsAtCompileTime> &m)
@@ -226,7 +249,7 @@ template <class MatT>
         Eigen::Matrix<Scalar, MatT::ColsAtCompileTime, MatT::RowsAtCompileTime> singularValuesInv(mat.cols(), mat.rows());
         singularValuesInv.setZero();
 
-        for (unsigned int i = 0; i < singularValues.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(singularValues.size()); ++i) {
             if (singularValues(i) > tolerance)
             {
                 singularValuesInv(i, i) = Scalar{ 1 } / singularValues(i);

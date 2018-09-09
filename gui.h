@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QThread>
 #include <QKeyEvent>
+#include <QPushButton>
 
 #include <iostream>
 
@@ -18,6 +19,12 @@ class GUI : public QWidget
     QThread programThread;
 
     Program * program;
+
+/////////////////////////////////////// GUI
+    QPushButton * robotInit,
+                * start;
+
+/////////////////////////////////////// !GUI
 
 public:
     explicit GUI(QWidget *parent = nullptr);

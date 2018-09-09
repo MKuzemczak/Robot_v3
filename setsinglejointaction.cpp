@@ -25,6 +25,8 @@ void SetSingleJointAction::calculate(Robot & robot)
 
     setCalculated();
     resetDone();
+    emit calculationsFinished();
+    moveToThread(getParentThreadPtr());
 }
 
 void SetSingleJointAction::execute()
@@ -32,7 +34,7 @@ void SetSingleJointAction::execute()
     std::string s;
 
     s = "B";
-    for (int j = 0; j < (int)servoSignals.size(); j++)
+    for (int j = 0; j < static_cast<int>(servoSignals.size()); j++)
     {
         s += std::to_string(servoSignals[j]) + "\n";
 

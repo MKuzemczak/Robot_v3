@@ -1,6 +1,8 @@
 #ifndef COMFLAGS_H
 #define COMFLAGS_H
 
+#include <QObject>
+
 #define NUM_OF_FLAGS 5
 
 #define FLAG_OFFSET 'A'
@@ -13,8 +15,10 @@
 
 
 
-class Flags
+class Flags : public QObject
 {
+    Q_OBJECT
+
     char tab[NUM_OF_FLAGS];
 
     int currentlySetFlag;
@@ -25,12 +29,17 @@ public:
 
     }
 
+    Flags(QObject * parent) : QObject(parent) {}
+
     void set(int i)
     {
         tab[i-FLAG_OFFSET] = 1;
 
         if(i != LOOP && i != SIM_INPUTS && i != STOP)
             currentlySetFlag = i - FLAG_OFFSET;
+
+        if(i == ARDUINO_MOV_FIN)
+            emit movFinReceived();
     }
 
     void reset(int i)
@@ -78,7 +87,8 @@ public:
 
     }
 
-
+signals:
+    void movFinReceived();
 };
 
 

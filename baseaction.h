@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QObject>
+
 #include "eigenaddons.h"
 #include "lista.h"
 #include "robot.h"
@@ -25,8 +27,10 @@ typedef enum
  *  oraz metodę, która wykorzystuje te dane (np. interpoluje tor lub obsługuje czasomierz).
  *
  **/
-class BaseAction
+class BaseAction : public QObject
 {
+    Q_OBJECT
+
     // klasa bazowa, niewiele tu jest, wszystko w klasach pochodnych
 
     ActionType type;
@@ -37,9 +41,12 @@ class BaseAction
     SerialPort * arduinoPortPtr;
     Flags * flagsPtr;
 
+    QThread * parentThreadPtr;
+
 
 public:
     BaseAction();
+    BaseAction(QObject * parent);
     virtual ~BaseAction();
 
     void setType(ActionType t);
@@ -53,10 +60,18 @@ public:
     void setFlagsPtr(Flags * ptr);
     Flags * flags();
     bool isDone();
+    void setParentThreadPtr(QThread * ptr);
+    QThread * getParentThreadPtr();
 
     virtual void calculate(Robot & robot);
     virtual void execute();
     virtual int size();
+
+public slots:
+    void calcSlot(Robot * robot);
+
+signals:
+    void calculationsFinished();
 };
 
 class StraightLineMovAction : public BaseAction
@@ -130,6 +145,7 @@ public:
 
     virtual void calculate(Robot & robot)
     {
+        robot.getDOF();
     }
     virtual void execute()
     {
