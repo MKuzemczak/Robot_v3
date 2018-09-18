@@ -212,7 +212,7 @@ bool Robot::jacobAlgStep(double param, int startJoint, int endJoint, int setJoin
     subt = joints[setJoint]->getLocation() - target;
 
 #ifdef DEBUG_ROBOT
-    //qDebug << "subt:\n" << subt << '\n';
+    qDebug() << "subt:\n" << subt << '\n';
 
 #endif // DEBUG_ROBOT
 
@@ -223,19 +223,22 @@ bool Robot::jacobAlgStep(double param, int startJoint, int endJoint, int setJoin
 
 
 #ifdef DEBUG_ROBOT
-    //qDebug("invJ:\n" << invJ << '\n';
+    qDebug() << "invJ:\n" << invJ << '\n';
 #endif // DEBUG_ROBOT
 
     mult = param * (invJ * subt);
 
+    for(int i = 0; i < static_cast<int>(mult.size()); i++)
+        constrain(mult(i), -20*DEG_TO_RAD, 20*DEG_TO_RAD);
+
 #ifdef DEBUG_ROBOT
-    //qDebug("mult:\n" << mult << '\n';
+    qDebug() << "mult:\n" << mult << '\n';
 #endif // DEBUG_ROBOT
 
     thetas = (thetas - mult).eval();
 
 #ifdef DEBUG_ROBOT
-    //qDebug("thetas:\n" << thetas << '\n';
+    qDebug() << "thetas:\n" << thetas << '\n';
 #endif // DEBUG_ROBOT
 
 
@@ -243,6 +246,10 @@ bool Robot::jacobAlgStep(double param, int startJoint, int endJoint, int setJoin
 
     for (int i = 0; i < amount; i++)
     {
+#ifdef DEBUG_ROBOT
+        //qDebug() << "Robot::jacobAlgStep(...),  Theta" << i << " == " << thetas(i);
+#endif
+
         constrain(thetas(i), joints[startJoint + i]->getConstructionMinMaxDeg()[0] * DEG_TO_RAD, joints[startJoint + i]->getConstructionMinMaxDeg()[1] * DEG_TO_RAD);
         joints[startJoint + i]->setTheta(thetas(i));
     }
@@ -318,6 +325,53 @@ bool Robot::set(int startJoint, int endJoint, int setJoint, Eigen::Vector3d & po
     updateDHmatrices();
     updateDHvectors();
 
+    // poniżej słabe rozwiązanie, zrobione pod konretnego robota.
+    // Algorytm powinien działać dla każdego łańcucha kinematycznego.
+
+    //Eigen::Vector2i tmp;
+
+    if(startJoint == 0)
+    {
+        //tmp = joints[0]->getConstructionMinMaxDeg();
+
+        if(fabs(point[2]) < 0.01)
+        {
+            setThetaRad(0, 0);
+
+
+#ifdef DEBUG_ROBOT1
+            qDebug() << "Robot::set(int, int, int, Eigen::Vector3d &), joints[0] theta = 0";
+#endif
+        }
+        else
+        {
+#ifdef DEBUG_ROBOT1
+            qDebug() << "Robot::set(int, int, int, Eigen::Vector3d &), joints[0] theta construction min max";
+#endif
+
+         //   double tmp0;
+
+            if (point[0] < 0)
+                setThetaRad(0, -atan((static_cast<double>(-point[2]))/(static_cast<double>(-point[0]))));
+            else
+                setThetaRad(0, -atan((static_cast<double>(point[2]))/(static_cast<double>(point[0]))));
+
+            //setJointConstructionMinMax(0,
+              //                         static_cast<int>(tmp0 / DEG_TO_RAD) - 10,
+                //                       static_cast<int>(tmp0 / DEG_TO_RAD) + 10);
+
+#ifdef DEBUG_ROBOT1
+       //     qDebug() << "tmp0 == " << tmp0;
+#endif
+
+        }
+
+        startJoint = 1;
+
+    }
+
+    // koniec tej części słabego rozwiązania.
+
     while (static_cast<double>((point - joints[setJoint]->getLocation()).norm()) > 1)
     {
         if(!jacobAlgStep(1, startJoint, endJoint, setJoint, point))
@@ -341,6 +395,11 @@ bool Robot::set(int startJoint, int endJoint, int setJoint, Eigen::Vector3d & po
 
 #endif // DEBUG_ROBOT
     }
+
+    /*if(startJoint == 0)
+    {
+        setJointConstructionMinMax(0, tmp[0], tmp[1]);
+    }*/
 
     return true;
 }
@@ -396,6 +455,10 @@ int Robot::getJointConversionMax(int joint)
 
 void Robot::setJointConstructionMinMax(int joint, int min, int max)
 {
+#ifdef DEBUG_ROBOT1
+    qDebug() << "Robot::setJointConstructionMinMax(" << joint << ", " << min << ", " <<  max << ");";
+#endif
+
     joints[joint]->setConstructionMinMaxDeg(min, max);
 }
 
@@ -474,7 +537,7 @@ void Robot::setThetaDeg(int joint, double theta)
 }
 void Robot::setThetaRad(int joint, double theta)
 {
-    joints[joint]->setTheta(theta*DEG_TO_RAD);
+    joints[joint]->setTheta(theta);
 
     updateDHmatrices();
     updateDHvectors();
@@ -507,6 +570,16 @@ int Robot::getRegJointsAmount()
 int Robot::getLocJointsAmount()
 {
     return static_cast<int>(locJoints.size());
+}
+
+void Robot::setTCPOrient(Eigen::Vector3d v)
+{
+    TCPOrient = v;
+}
+
+Eigen::Vector3d & Robot::getTCPOrient()
+{
+    return TCPOrient;
 }
 
 //////////////////////////////////////////////////////////////////// !setters & getters & adders

@@ -162,7 +162,7 @@ void Joint::addServoMinMax(int min, int max)
 
 void Joint::setServoMinMax(int servo, int min, int max)
 {
-    if (servo < 0 || servo >= (int)servosMinMax.size())
+    if (servo < 0 || servo >= static_cast<int>(servosMinMax.size()))
         qDebug("Joint::setServoMinMax(...): Error: Servo index out of bounds\n");
     else
     {

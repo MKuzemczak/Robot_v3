@@ -105,6 +105,8 @@ void Program::testRobotInit()
     robot.setJointConversionMinMax(3, -90, 90);
     robot.setJointConversionMinMax(4, -180, 0);
 
+    robot.setTCPOrient(robot.getJointLocation(robot.getDOF() - 1) - robot.getTCPlocation());
+
     arduinoPort << "B350\n382\n347\n355\n364\n362\nC";
 
 #ifdef PROGRAM_DEBUG
@@ -123,11 +125,12 @@ void Program::testRun()
 
     Eigen::Vector3d v0, v1;
 
-    v0 << 183, 100, 100;
-    v1 << 183, 100, -100;
+    manager->addSetSingleJointAction(4, -80);
 
-    manager->addConstTCPOrientAction(robot.getTCPlocation(), v0);
-    manager->addConstTCPOrientAction(v0, v1);
+    v0 << 50, 150, 0;
+    v1 << 150, 200, 0;
+
+
 
     manager->setRobotPtr(&robot);
 

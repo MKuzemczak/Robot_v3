@@ -156,7 +156,7 @@ class SetSingleJointAction : public BaseAction
 {
     int joint,
         angleDeg;
-    Lista<int> servoSignals;
+    Lista<Lista<int>> pathInServoDegs;
 
 public:
     SetSingleJointAction(int j, int deg,

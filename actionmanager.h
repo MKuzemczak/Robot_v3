@@ -75,6 +75,12 @@ public:
 #endif
     }
 
+    void addSetSingleJointAction(int joint, int thetaDeg)
+    {
+        actions.push_back(new SetSingleJointAction(joint, thetaDeg, arduinoPort, flags));
+        actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
+    }
+
     bool isCheckCalculations()
     {
         return checkCalculations;

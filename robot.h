@@ -6,7 +6,8 @@
 #include "lista.h"
 #include "joint.h"
 
-//#define DEBUG_ROBOT
+#define DEBUG_ROBOT
+#define DEBUG_ROBOT1
 
 class Robot
 {
@@ -18,6 +19,7 @@ class Robot
     Joint TCP;// polozenie TCP
     int DOF;// liczba DOF
 
+    Eigen::Vector3d TCPOrient;
 
     // aktualne rozwarcie chwytaka
 
@@ -72,6 +74,9 @@ public:
 
     int getRegJointsAmount();
     int getLocJointsAmount();
+
+    void setTCPOrient(Eigen::Vector3d v);
+    Eigen::Vector3d & getTCPOrient();
     /////////////////////////////////////////////////////////////// !setter & getters & adders
 
 };

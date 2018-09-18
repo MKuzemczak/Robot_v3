@@ -23,7 +23,7 @@ void ConstTCPOrientAction::calculate(Robot & robot)
     Lista<Eigen::Vector3d> path;
     Eigen::Vector3d orient;
 
-    orient = robot.getJointLocation(robot.getDOF() - 1) - robot.getTCPlocation();
+    orient = robot.getTCPOrient();
 
 
     lerp(path);

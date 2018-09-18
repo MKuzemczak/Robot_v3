@@ -41,6 +41,8 @@ void StraightLineMovAction::calculate(Robot & robot)
                 qDebug("Straight Line Action, calculate(), ustawiono czesc regionalna robota\n");
 #endif // DEBUG
 
+                robot.setTCPOrient(robot.getJointLocation(robot.getDOF() - 1) - robot.getTCPlocation());
+
                 Lista<int> s;
 
                 robot.mapThetasToServos(s);

@@ -62,6 +62,17 @@ template<typename T>
 
             return this->end();
         }
+
+        int indexOf(T obj)
+        {
+            for(int i = 0; i < static_cast<int>(this->size()); i++)
+            {
+                if(obj == (*this)[i])
+                    return i;
+            }
+
+            return -1;
+        }
     };
 
 #endif // LISTA_H

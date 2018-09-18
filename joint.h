@@ -20,7 +20,7 @@ class Joint
         ZaxisInGlobal;
 
     Lista<Eigen::Vector2i> servosMinMax;					// list of minimum & maximum signals of servos that this joint represents
-    Eigen::Vector2i angleConversionMinMaxDeg,		// list if min&max angles needed for conversion. In degrees (because Integer)
+    Eigen::Vector2i angleConversionMinMaxDeg,		// list if min&max angles needed for conversion to servo. In degrees (because Integer)
                             angleConstructionMinMaxDeg;		// list of min&max angles imposed by construction of the robot. In degrees
 
 public:

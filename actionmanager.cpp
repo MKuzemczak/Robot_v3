@@ -92,17 +92,20 @@ void ActionManager::nextStep()
         {
             actionCntr++;
             checkCalculations = true;
+
+            if (flags->isSet(LOOP) && actionCntr == static_cast<int>(actions.size()))
+            {
+                actionCntr = 0;
+
+#ifdef DEBUG_ACTION_MANAGER
+                qDebug() << "ActionManager::nextStep() : LOOP";
+#endif
+            }
+
             calculations();
         }
 
-        if (flags->isSet(LOOP) && actionCntr == static_cast<int>(actions.size()))
-        {
-            actionCntr = 0;
 
-#ifdef DEBUG_ACTION_MANAGER
-            qDebug() << "ActionManager::nextStep() : LOOP";
-#endif
-        }
 
         #ifdef DEBUG_ACTION_MANAGER
         //qDebug("ActionManager::execute() : koniec\n");
