@@ -70,18 +70,19 @@ void ActionManager::nextStep()
 
         stepInProgress = true;
 
-        #ifdef DEBUG_ACTION_MANAGER
-        //qDebug("ActionManager::nextStep() : poczatek\nactions.size() == %d,"
-        //"actionCntr == %d\n", (int)actions.size(), actionCntr);
-        #endif // DEBUG_ACTION_MANAGER
+#ifdef DEBUG_ACTION_MANAGER
+        qDebug("ActionManager::nextStep() : poczatek\nactions.size() == %d,"
+               "actionCntr == %d", static_cast<int>(actions.size()), actionCntr);
+#endif // DEBUG_ACTION_MANAGER
 
 
-        if(actions[actionCntr]->size() > 0)
+        if(/*actions[actionCntr]->size() > 0*/!actions[actionCntr]->isDone())
         {
             actions[actionCntr]->execute();
 
-            qDebug("action no. %d\n", actionCntr);
+
 #ifdef DEBUG_ACTION_MANAGER
+            qDebug("action no. %d", actionCntr);
             qDebug("ActionManager::nextStep() : execute(), actionCntr == %d", actionCntr );
 #endif // DEBUG_ACTION_MANAGER
 
@@ -154,10 +155,9 @@ void ActionManager::calculations()
             calculationThread.start();
 
             emit startActionCalculations(robotPtr);
-            //actions[number]->calculate(*robotPtr);
 
 #ifdef DEBUG_ACTION_MANAGER
-            qDebug("ActionManager::calculations() : calc + 1\n");
+            qDebug("ActionManager::calculations(), emit startActionCalculations(robotPtr);\n");
 #endif // DEBUG_ACTION_MANAGER
 
         }

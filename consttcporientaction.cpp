@@ -1,5 +1,7 @@
 #include "baseaction.h"
 
+#define DEBUG_CONSTTCP
+
 ConstTCPOrientAction::ConstTCPOrientAction(Eigen::Vector3d start,
                                            Eigen::Vector3d dest,
                                            SerialPort * port,
@@ -73,6 +75,11 @@ void ConstTCPOrientAction::execute()
     while (!flags()->isSet(ARDUINO_MOV_FIN)) ;
 
     *arduinoPort() << s;
+
+#ifdef DEBUG_CONSTTCP
+    qDebug() << s.c_str();
+#endif
+
 
     flags()->reset(ARDUINO_MOV_FIN);
     pathInServoDegs.erase(0);

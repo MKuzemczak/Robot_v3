@@ -15,7 +15,8 @@ typedef enum
     LOCAL_CHANGE,
     DELAY,
     SINGLE,
-    CONST_STRAIGHT
+    CONST_STRAIGHT,
+    GRIPPER
 } ActionType;
 
 
@@ -166,6 +167,7 @@ public:
 
     virtual void calculate(Robot & robot);
     virtual void execute();
+    virtual int size();
 };
 
 class ConstTCPOrientAction : public BaseAction
@@ -186,5 +188,21 @@ public:
     virtual void execute();
 
     void lerp(Lista<Eigen::Vector3d> & path);
+    virtual int size();
+};
+
+class GripperAction : public BaseAction
+{
+    int newSetting, index;
+
+public:
+    GripperAction(int set,
+                  SerialPort * port,
+                  Flags * flags);
+    ~GripperAction();
+
+    virtual void calculate(Robot & robot);
+    virtual void execute();
+
     virtual int size();
 };

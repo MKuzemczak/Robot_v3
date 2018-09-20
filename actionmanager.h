@@ -81,6 +81,12 @@ public:
         actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
     }
 
+    void addGripperAction(int set)
+    {
+        actions.push_back(new GripperAction(set, arduinoPort, flags));
+        actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
+    }
+
     bool isCheckCalculations()
     {
         return checkCalculations;

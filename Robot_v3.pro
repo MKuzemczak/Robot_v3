@@ -22,7 +22,8 @@ SOURCES += \
     setsinglejointaction.cpp \
     consttcporientaction.cpp \
     actionmanager.cpp \
-    program.cpp
+    program.cpp \
+    gripperaction.cpp
 
 HEADERS += \
     gui.h \

@@ -302,6 +302,127 @@ bool Robot::jacobian(Eigen::MatrixXd & jacobM, int startJoint, int endJoint, int
     return true;
 }
 
+bool Robot::jacobAlgStep(double param, Lista<int> & indexes, int setJoint, Eigen::Vector3d & target)
+{
+    if (param < SMALLEST)
+    {
+        qDebug("Error jacobAlgStep: parametr algorytmu zerowy!\n");
+        return false;
+    }
+
+    if (setJoint < 2)
+    {
+        qDebug("Error jacobAlgStep: nie mozna zastosowac algorytmu"
+               " do przegubow nizszysch niz nr %d\n", setJoint);
+        return false;
+    }
+
+    int amount = static_cast<int>(indexes.size());
+
+    Eigen::MatrixXd jacobM(3, amount);
+    Eigen::VectorXd thetas(amount);
+    Eigen::MatrixXd invJ(amount, 3);
+    Eigen::VectorXd mult;
+    Eigen::Vector3d subt;
+
+    for (int i = 0; i < amount; i++)
+        thetas(i) = joints[indexes[i]]->getTheta();
+
+    subt = joints[setJoint]->getLocation() - target;
+
+#ifdef DEBUG_ROBOT
+    qDebug() << "subt:\n" << subt << '\n';
+
+#endif // DEBUG_ROBOT
+
+
+    jacobian(jacobM, indexes, setJoint);
+
+    invJ = psInv(jacobM);
+
+
+#ifdef DEBUG_ROBOT
+    qDebug() << "invJ:\n" << invJ << '\n';
+#endif // DEBUG_ROBOT
+
+    mult = param * (invJ * subt);
+
+    for(int i = 0; i < static_cast<int>(mult.size()); i++)
+        constrain(mult(i), -20*DEG_TO_RAD, 20*DEG_TO_RAD);
+
+#ifdef DEBUG_ROBOT
+    qDebug() << "mult:\n" << mult << '\n';
+#endif // DEBUG_ROBOT
+
+    thetas = (thetas - mult).eval();
+
+#ifdef DEBUG_ROBOT
+    qDebug() << "thetas:\n" << thetas << '\n';
+#endif // DEBUG_ROBOT
+
+
+
+
+    for (int i = 0; i < amount; i++)
+    {
+#ifdef DEBUG_ROBOT
+        //qDebug() << "Robot::jacobAlgStep(...),  Theta" << i << " == " << thetas(i);
+#endif
+
+        constrain(thetas(i),
+                  joints[indexes[i]]->getConstructionMinMaxDeg()[0] * DEG_TO_RAD,
+                  joints[indexes[i]]->getConstructionMinMaxDeg()[1] * DEG_TO_RAD);
+        joints[indexes[i]]->setTheta(thetas(i));
+    }
+
+
+    updateDHmatrices();
+    updateDHvectors();
+
+    return true;
+}
+
+bool Robot::jacobian(Eigen::MatrixXd & jacobM, Lista<int> & indexes, int setJoint)
+{
+    int amount = static_cast<int>(indexes.size());
+
+    if (amount != jacobM.cols())
+    {
+        qDebug("jacobian: ilosc przegubow i ilosc kolumn w macierzy jakobianowej nie sa sobie rowne!\n");
+        qDebug("Przeguby: %d, kolumny: %d\n", amount, static_cast<int>(jacobM.cols()));
+        return false;
+    }
+
+    if (jacobM.rows() != 3)
+    {
+        qDebug("Macierz jakobiego nie sklada sie z trzech wierszy (z wektorow 3D)!\n");
+        qDebug("jacobM.cols(): %d\n", static_cast<int>(jacobM.cols()));
+        return false;
+    }
+
+    Eigen::Vector3d jToP,    // vector pointing from currently processed joint to setPoint
+                    dJToP,   // rotation around Z derivative - change of jToP vector
+                    setPoint = joints[setJoint]->getLocation();
+
+    for(int i = 0 ; i < amount; i++)
+    {
+        jToP = setPoint - joints[indexes[i]]->getLocation();
+        dJToP = joints[indexes[i]]->getZinGlobal().cross(jToP);
+        jacobM.col(i) = dJToP;
+
+#ifdef DEBUG_ROBOT
+        qDebug() << "Robot::jacobian(Eigen::MatrixXd &, int, int, int) : jToP:\n" << jToP << "\n";
+#endif // DEBUG_ROBOT
+    }
+
+#ifdef DEBUG_ROBOT
+    qDebug() << "Robot::jacobian(Eigen::MatrixXd &, int, int, int) : jacobM:\n" << jacobM << "\n";
+#endif // DEBUG_ROBOT
+
+
+    return true;
+}
+
 bool Robot::set(Eigen::Vector3d & point)
 {
     updateDHmatrices();
@@ -427,6 +548,98 @@ bool Robot::setRegional(Eigen::Vector3d & point)
     return true;
 }
 
+bool Robot::setExcluding(int excludedJoint, int setJoint, Eigen::Vector3d & point)
+{
+#ifdef DEBUG_ROBOT
+    //qDebug("Robot::setExcluding(int, Eigen::Vector3d &)\n");
+#endif
+
+    updateDHmatrices();
+    updateDHvectors();
+
+    // poniżej słabe rozwiązanie, zrobione pod konretnego robota.
+    // Algorytm powinien działać dla każdego łańcucha kinematycznego.
+
+    //Eigen::Vector2i tmp;
+
+    if(excludedJoint != 0)
+    {
+        //tmp = joints[0]->getConstructionMinMaxDeg();
+
+        if(fabs(point[2]) < 0.01)
+        {
+            setThetaRad(0, 0);
+
+
+#ifdef DEBUG_ROBOT1
+            qDebug() << "Robot::set(int, int, int, Eigen::Vector3d &), joints[0] theta = 0";
+#endif
+        }
+        else
+        {
+#ifdef DEBUG_ROBOT1
+            qDebug() << "Robot::set(int, int, int, Eigen::Vector3d &), joints[0] theta construction min max";
+#endif
+
+         //   double tmp0;
+
+            if (point[0] < 0)
+                setThetaRad(0, -atan((static_cast<double>(-point[2]))/(static_cast<double>(-point[0]))));
+            else
+                setThetaRad(0, -atan((static_cast<double>(point[2]))/(static_cast<double>(point[0]))));
+
+            //setJointConstructionMinMax(0,
+              //                         static_cast<int>(tmp0 / DEG_TO_RAD) - 10,
+                //                       static_cast<int>(tmp0 / DEG_TO_RAD) + 10);
+
+#ifdef DEBUG_ROBOT1
+       //     qDebug() << "tmp0 == " << tmp0;
+#endif
+
+        }
+    }
+
+    // koniec tej części słabego rozwiązania.
+
+    Lista<int> indexes;
+
+    for(int i = 1; i < setJoint; i++)
+    {
+        if(i != excludedJoint)
+            indexes.push_back(i);
+    }
+
+    while (static_cast<double>((point - joints[setJoint]->getLocation()).norm()) > 1)
+    {
+        if(!jacobAlgStep(1, indexes, setJoint, point))
+            return false;
+
+
+#ifdef DEBUG_ROBOT
+        qDebug("Robot::set(int, int, int, Eigen::Vector3d &), koniec petli\n");
+        qDebug("excludedJoint == %d, setJoint == %d\n",
+               excludedJoint, setJoint);
+        qDebug() << "point:\n" << point;
+        qDebug() << "Joints:";
+        for (int i = 0; i < static_cast<int>(joints.size()); i++)
+        {
+            qDebug() << "Joint " << i << ":\n"
+                     << joints[i]->getLocation()
+                     << "Theta == "
+                     << joints[i]->getTheta() / DEG_TO_RAD
+                     << "\n\n";
+        }
+
+#endif // DEBUG_ROBOT
+    }
+
+    /*if(startJoint == 0)
+    {
+        setJointConstructionMinMax(0, tmp[0], tmp[1]);
+    }*/
+
+    return true;
+}
 
 void Robot::mapThetasToServos(Lista<int> & lista)
 {
@@ -580,6 +793,16 @@ void Robot::setTCPOrient(Eigen::Vector3d v)
 Eigen::Vector3d & Robot::getTCPOrient()
 {
     return TCPOrient;
+}
+
+void Robot::setGripper(int set)
+{
+    gripperSetting = set;
+}
+
+int Robot::getGripper()
+{
+    return gripperSetting;
 }
 
 //////////////////////////////////////////////////////////////////// !setters & getters & adders

@@ -19,6 +19,8 @@ class Robot
     Joint TCP;// polozenie TCP
     int DOF;// liczba DOF
 
+    int gripperSetting;
+
     Eigen::Vector3d TCPOrient;
 
     // aktualne rozwarcie chwytaka
@@ -36,9 +38,13 @@ public:
     bool set(Eigen::Vector3d & point); // using jacobian algorithm
     bool set(int startJoint, int endJoint, int setJoint, Eigen::Vector3d & point);
     bool setRegional(Eigen::Vector3d & point);
+    bool setExcluding(int excludedJoint, int setJoint, Eigen::Vector3d & point);
 
     bool jacobAlgStep(double param, int startJoint, int endJoint, int setJoint, Eigen::Vector3d & target);
     bool jacobian(Eigen::MatrixXd & jacobM, int startJoint, int endJoint, int setJoint);
+
+    bool jacobAlgStep(double param, Lista<int> & indexes, int setJoint, Eigen::Vector3d & target);
+    bool jacobian(Eigen::MatrixXd & jacobM, Lista<int> & indexes, int setJoint);
 
     //////////////////////////////////////////////////////// setters & getters & adders
     void addRegJoint(double a, double al, double dl);
@@ -77,6 +83,9 @@ public:
 
     void setTCPOrient(Eigen::Vector3d v);
     Eigen::Vector3d & getTCPOrient();
+
+    void setGripper(int set);
+    int getGripper();
     /////////////////////////////////////////////////////////////// !setter & getters & adders
 
 };

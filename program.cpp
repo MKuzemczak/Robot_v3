@@ -91,13 +91,13 @@ void Program::testRobotInit()
     robot.addJointServoMinMax(1, 545, 154);
     robot.addJointServoMinMax(2, 560, 160);
     robot.addJointServoMinMax(3, 570, 165);
-    robot.addJointServoMinMax(4, 160, 570);
+    robot.addJointServoMinMax(4, 140, 590);
 
     robot.setJointConstructionMinMax(0, -90, 90);
     robot.setJointConstructionMinMax(1, 20, 150);
     robot.setJointConstructionMinMax(2, -45, 45);
     robot.setJointConstructionMinMax(3, -90, 90);
-    robot.setJointConstructionMinMax(4, -160, -20);
+    robot.setJointConstructionMinMax(4, -180, 0);
 
     robot.setJointConversionMinMax(0, -90, 90);
     robot.setJointConversionMinMax(1, 0, 180);
@@ -107,7 +107,7 @@ void Program::testRobotInit()
 
     robot.setTCPOrient(robot.getJointLocation(robot.getDOF() - 1) - robot.getTCPlocation());
 
-    arduinoPort << "B350\n382\n347\n355\n364\n362\nC";
+    arduinoPort << "B350\n382\n347\n355\n364\n362\n500\nC";
 
 #ifdef PROGRAM_DEBUG
     qDebug() << "Program::testRobotInit() : end";
@@ -121,14 +121,24 @@ void Program::testRun()
     qDebug() << "Program::testRun() : start";
 #endif
 
-    flags->set(LOOP);
+    //flags->set(LOOP);
 
-    Eigen::Vector3d v0, v1;
+    Eigen::Vector3d v0, v1, robotBase;
 
-    manager->addSetSingleJointAction(4, -80);
+    robotBase = robot.getTCPlocation();
 
-    v0 << 50, 150, 0;
-    v1 << 150, 200, 0;
+    v0 << 200, 50, 0;
+    v1 << 150, 50, 0;
+
+    manager->addConstTCPOrientAction(robotBase, v0);
+    manager->addSetSingleJointAction(4, -150);
+    manager->addConstTCPOrientAction(v0, v1);
+    manager->addSetSingleJointAction(4, -179);
+    manager->addGripperAction(300);
+    v0 << 150, -30, 0;
+    manager->addConstTCPOrientAction(v1, v0);
+    manager->addGripperAction(520);
+    manager->addConstTCPOrientAction(v0, v1);
 
 
 
