@@ -23,7 +23,10 @@ SOURCES += \
     consttcporientaction.cpp \
     actionmanager.cpp \
     program.cpp \
-    gripperaction.cpp
+    gripperaction.cpp \
+    maintab.cpp \
+    testtab.cpp \
+    actionlistwidget.cpp
 
 HEADERS += \
     gui.h \
@@ -37,4 +40,7 @@ HEADERS += \
     robot.h \
     baseaction.h \
     actionmanager.h \
-    program.h
+    program.h \
+    maintab.h \
+    testtab.h \
+    actionlistwidget.h

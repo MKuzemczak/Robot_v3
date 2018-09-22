@@ -75,6 +75,7 @@ void Program::testRobotInit()
     qDebug() << "Program::testRObotInit() : start";
 #endif
 
+    robot = Robot();
 
     robot.addRegJoint(-90, 0, 0);
     robot.addRegJoint(90, 0, 0);
@@ -122,6 +123,8 @@ void Program::testRun()
 #endif
 
     //flags->set(LOOP);
+
+    manager->clear();
 
     Eigen::Vector3d v0, v1, robotBase;
 

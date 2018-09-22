@@ -18,7 +18,7 @@ StraightLineMovAction::StraightLineMovAction(Eigen::Vector3d start,
 
 void StraightLineMovAction::calculate(Robot & robot)
 {
-        Lista<Eigen::Vector3d> path;
+        Lista<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> path;
 
         lerp(path);
 
@@ -110,7 +110,7 @@ void StraightLineMovAction::execute()
 
 }
 
-void StraightLineMovAction::lerp(Lista<Eigen::Vector3d> & path)
+void StraightLineMovAction::lerp(Lista<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> & path)
 {
         Eigen::Vector3d v = destination - starting;
 

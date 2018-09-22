@@ -20,15 +20,18 @@ class Program : public QObject
 
     Flags * flags;
 
-    SerialPort arduinoPort;
-
     SerialCommunicatorThread * com;
 
     ActionManager * manager;
 
+    SerialPort arduinoPort;
+
     Robot robot;
 
+
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     Program();
     ~Program();
 

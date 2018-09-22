@@ -5,8 +5,8 @@
 #include <list>
 #include <QDebug>
 
-template<typename T>
-    class Lista : public std::list<T>
+template<class T, class Allocator = std::allocator<T>>
+    class Lista : public std::list<T, Allocator>
     {
     public:
         T & operator [](const int index)
@@ -31,11 +31,11 @@ template<typename T>
         {
             int i = 0;
 
-            for (auto it = std::list<T>::begin(); it != std::list<T>::end();)
+            for (auto it = std::list<T, Allocator>::begin(); it != std::list<T, Allocator>::end();)
             {
                 if (i++ == index)
                 {
-                    it = std::list<T>::erase(it);
+                    it = std::list<T, Allocator>::erase(it);
                     break;
                 }
                 else

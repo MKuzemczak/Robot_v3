@@ -3,21 +3,38 @@
 GUI::GUI(QWidget *parent) :
     QWidget(parent)
 {
-    setFixedSize(620, 300);
+    setWindowState(Qt::WindowMaximized | Qt::WindowMinimized);
+
+    QDesktopWidget * desktop = QApplication::desktop();
+
+    this->setMinimumSize(620, 300);
+    this->setMaximumSize(desktop->availableGeometry().width(), desktop->availableGeometry().height());
 
     program = new Program();
     program->moveToThread(&programThread);
     connect(this, SIGNAL(keyPressed(int)), program, SLOT(keyPressed(int)));
     programThread.start();
 
-    robotInit = new QPushButton("Init", this);
-    start = new QPushButton("Start", this);
 
-    robotInit->setGeometry(100, 100, 200, 100);
-    start->setGeometry(320, 100, 200, 100);
+    tabWidget = new QTabWidget;
+    tabWidget->addTab(new TestTab(), "Test");
+    tabWidget->addTab(new MainTab(), "Tab 1");
+    tabWidget->addTab(new QPushButton("Tab 2"), "Tab 2");
 
-    connect(robotInit, SIGNAL(pressed()), program, SLOT(testRobotInit()));
-    connect(start, SIGNAL(pressed()), program, SLOT(testRun()));
+    connect(tabWidget->widget(0), SIGNAL(initPressed()), program, SLOT(testRobotInit()));
+    connect(tabWidget->widget(0), SIGNAL(startPressed()), program, SLOT(testRun()));
+
+    QVBoxLayout * layout = new QVBoxLayout;
+    layout->addWidget(tabWidget);
+    this->setLayout(layout);
+
+/*    setWindowFlags(Qt::Window
+    | Qt::WindowMinimizeButtonHint
+    | Qt::WindowMaximizeButtonHint
+    | Qt::WindowCloseButtonHint);
+*/
+
+
 }
 
 

@@ -5,12 +5,15 @@
 #include <QThread>
 #include <QKeyEvent>
 #include <QPushButton>
+#include <QTabWidget>
+#include <QVBoxLayout>
+#include <QDesktopWidget>
 
 #include <iostream>
 
 #include "program.h"
-#include "serialcommunicator.h"
-#include "actionmanager.h"
+#include "maintab.h"
+#include "testtab.h"
 
 class GUI : public QWidget
 {
@@ -21,9 +24,9 @@ class GUI : public QWidget
     Program * program;
 
 /////////////////////////////////////// GUI
-    QPushButton * robotInit,
-                * start;
 
+
+    QTabWidget * tabWidget;
 /////////////////////////////////////// !GUI
 
 public:

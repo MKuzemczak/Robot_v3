@@ -19,11 +19,13 @@ class Joint
     Eigen::Vector3d locationInGlobal,  // wektor polozenia przegubu w globalnym ukladzie
         ZaxisInGlobal;
 
-    Lista<Eigen::Vector2i> servosMinMax;					// list of minimum & maximum signals of servos that this joint represents
+    Lista<Eigen::Vector2i, Eigen::aligned_allocator<Eigen::Vector2i>> servosMinMax;					// list of minimum & maximum signals of servos that this joint represents
     Eigen::Vector2i angleConversionMinMaxDeg,		// list if min&max angles needed for conversion to servo. In degrees (because Integer)
                             angleConstructionMinMaxDeg;		// list of min&max angles imposed by construction of the robot. In degrees
 
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     Joint();
     Joint(double a, double al, double dl);
 

@@ -22,7 +22,7 @@ ConstTCPOrientAction::~ConstTCPOrientAction()
 
 void ConstTCPOrientAction::calculate(Robot & robot)
 {
-    Lista<Eigen::Vector3d> path;
+    Lista<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> path;
     Eigen::Vector3d orient;
 
     orient = robot.getTCPOrient();
@@ -93,7 +93,7 @@ void ConstTCPOrientAction::execute()
 }
 
 
-void ConstTCPOrientAction::lerp(Lista<Eigen::Vector3d> & path)
+void ConstTCPOrientAction::lerp(Lista<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> & path)
 {
     Eigen::Vector3d v = destination - starting;
 

@@ -13,7 +13,7 @@ class ActionManager : public QObject
 {
     Q_OBJECT
 
-    Lista<BaseAction*> actions;
+    Lista<BaseAction*, Eigen::aligned_allocator<BaseAction*>> actions;
     bool stepInProgress,
         checkCalculations,
         started;
@@ -104,6 +104,19 @@ public:
 
     void setFlagsPtr(Flags * ptr);
     void setArduinoPortPtr(SerialPort * ptr);
+
+    void clear()
+    {
+        actions.clear();
+
+        stepInProgress = false;
+        checkCalculations = false;
+        started = false;
+
+        actionCntr = 0;
+
+        currentlyCalculated = nullptr;
+    }
 
 public slots:
     void stopCalculationThread();

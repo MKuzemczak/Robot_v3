@@ -46,6 +46,8 @@ class BaseAction : public QObject
 
 
 public:
+
+
     BaseAction();
     BaseAction(QObject * parent);
     virtual ~BaseAction();
@@ -83,6 +85,8 @@ class StraightLineMovAction : public BaseAction
     Lista<Lista<int>> pathInServoDegs;
 
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     StraightLineMovAction(Eigen::Vector3d start,
                           Eigen::Vector3d dest,
                           SerialPort * port,
@@ -94,7 +98,7 @@ public:
     virtual void calculate(Robot & robot);
     virtual void execute();
 
-    void lerp(Lista<Eigen::Vector3d> & path);
+    void lerp(Lista<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> & path);
     virtual int size();
 };
 
@@ -105,6 +109,8 @@ class FreeMovAction : public BaseAction
     Lista<int> destInServoDegs;
 
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     FreeMovAction(Eigen::Vector3d dest,
                   SerialPort * port,
                   Flags * flags);
@@ -122,6 +128,8 @@ class ArchMovAction : public BaseAction
 
 
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     ArchMovAction(Eigen::Vector3d start,
                   Eigen::Vector3d inter,
                   Eigen::Vector3d dest,
@@ -178,6 +186,8 @@ class ConstTCPOrientAction : public BaseAction
     Lista<Lista<int>> pathInServoDegs;
 
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     ConstTCPOrientAction(Eigen::Vector3d start,
                          Eigen::Vector3d dest,
                          SerialPort * port,
@@ -187,7 +197,7 @@ public:
     virtual void calculate(Robot & robot);
     virtual void execute();
 
-    void lerp(Lista<Eigen::Vector3d> & path);
+    void lerp(Lista<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> & path);
     virtual int size();
 };
 

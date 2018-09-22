@@ -11,11 +11,6 @@
 
 class Robot
 {
-    Lista<Joint> regJoints,
-        locJoints;// lista przegubów
-
-    Lista<Joint*> joints;
-
     Joint TCP;// polozenie TCP
     int DOF;// liczba DOF
 
@@ -23,9 +18,18 @@ class Robot
 
     Eigen::Vector3d TCPOrient;
 
+
+    Lista<Joint, Eigen::aligned_allocator<Joint>> regJoints,
+        locJoints;// lista przegubów
+
+    Lista<Joint*, Eigen::aligned_allocator<Joint*>> joints;
+
+
     // aktualne rozwarcie chwytaka
 
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     Robot();
     ~Robot();
 
