@@ -19,19 +19,23 @@ GripperAction::~GripperAction()
 
 }
 
-void GripperAction::calculate(Robot & robot)
+bool GripperAction::calculate(Robot & robot)
 {
     robot.setGripper(newSetting);
 
+    servoIndex = 0;
+
     for(int i = 0; i< robot.getDOF(); i++)
     {
-        index += robot.getJointServoAmount(i);
+        servoIndex += robot.getJointServoAmount(i);
     }
 
     setCalculated();
     resetDone();
     emit calculationsFinished();
     moveToThread(getParentThreadPtr());
+
+    return true;
 }
 
 void GripperAction::execute()
@@ -39,7 +43,7 @@ void GripperAction::execute()
     std::string s;
 
     s = "D";
-    s += std::to_string(index);
+    s += std::to_string(servoIndex);
     s += "\nE";
     s += std::to_string(newSetting);
     s += '\n';

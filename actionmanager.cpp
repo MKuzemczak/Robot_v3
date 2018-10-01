@@ -8,6 +8,7 @@ ActionManager::ActionManager()
     stepInProgress = false;
     checkCalculations = false;
     started = false;
+    calculationsRunning = false;
     actionCntr = 0;
     robotPtr = nullptr;
 }
@@ -18,6 +19,7 @@ ActionManager::ActionManager(Flags * f, SerialPort * arduino, QObject * parent) 
     stepInProgress = false;
     checkCalculations = false;
     started = false;
+    calculationsRunning = false;
     actionCntr = 0;
     robotPtr = nullptr;
 
@@ -65,7 +67,10 @@ void ActionManager::stop()
  **/
 void ActionManager::nextStep()
 {
-    if (!stepInProgress && started && static_cast<int>(actions.size()) > 0)
+    if (!stepInProgress &&
+            started &&
+            static_cast<int>(actions.size()) > 0 &&
+            !flags->isSet(STOP))
     {
 
         stepInProgress = true;
@@ -76,31 +81,43 @@ void ActionManager::nextStep()
 #endif // DEBUG_ACTION_MANAGER
 
 
-        if(/*actions[actionCntr]->size() > 0*/!actions[actionCntr]->isDone())
+        if(!actions[actionCntr]->isDone())
         {
+#ifdef DEBUG_ACTION_MANAGER
+            qDebug("ActionManager::nextStep() : before actions[actionCntr]->execute();\n"
+                   ", actionCntr == %d", actionCntr );
+#endif // DEBUG_ACTION_MANAGER
+
             actions[actionCntr]->execute();
 
 
 #ifdef DEBUG_ACTION_MANAGER
-            qDebug("action no. %d", actionCntr);
-            qDebug("ActionManager::nextStep() : execute(), actionCntr == %d", actionCntr );
+            qDebug("ActionManager::nextStep() : after actions[actionCntr]->execute();\n"
+                   ", actionCntr == %d", actionCntr );
 #endif // DEBUG_ACTION_MANAGER
 
         }
 
 
-        if (actions[actionCntr]->isDone() && actions[((actionCntr < static_cast<int>(actions.size()) - 1) ? (actionCntr + 1) : 0)]->isCalculated())
+        if (actions[actionCntr]->isDone())
         {
-            actionCntr++;
-            checkCalculations = true;
-
-            if (flags->isSet(LOOP) && actionCntr == static_cast<int>(actions.size()))
+            if(actions[((actionCntr < static_cast<int>(actions.size()) - 1) ? (actionCntr + 1) : 0)]->isCalculated())
             {
-                actionCntr = 0;
+                actionCntr++;
+                checkCalculations = true;
+
+                if (flags->isSet(LOOP) && actionCntr == static_cast<int>(actions.size()))
+                {
+                    actionCntr = 0;
 
 #ifdef DEBUG_ACTION_MANAGER
-                qDebug() << "ActionManager::nextStep() : LOOP";
+                    qDebug() << "ActionManager::nextStep() : LOOP";
 #endif
+                }
+            }
+            else
+            {
+                QTimer::singleShot(200, this, SLOT(nextStep()));
             }
 
             calculations();
@@ -123,59 +140,90 @@ void ActionManager::calculations()
     qDebug("ActionManager::calculations() : actionCntr + 1 == %d", actionCntr + 1 );
 #endif // DEBUG_ACTION_MANAGER
 
-    int number;
-    bool go = false;
-
-    if (actionCntr < static_cast<int>(actions.size()) - 1)
+    if(!calculationsRunning && !flags->isSet(STOP))
     {
-        number = actionCntr + 1;
-        go = true;
+        calculationsRunning = true;
 
-    }
-    else if (flags->isSet(LOOP))
-    {
-        number = 0;
-        go = true;
-    }
+        int number;
+        bool go = false;
 
-    if(go)
-    {
-        if (!actions[number]->isCalculated())
+        if (actionCntr < static_cast<int>(actions.size()) - 1)
         {
-            actions[number]->moveToThread(&calculationThread);
-
-            connect(this, SIGNAL(startActionCalculations(Robot *)),
-                    actions[number], SLOT(calcSlot(Robot *)));
-
-            connect(actions[number], SIGNAL(calculationsFinished()),
-                    this, SLOT(stopCalculationThread()));
-
-            currentlyCalculated = actions[number];
-
-            calculationThread.start();
-
-            emit startActionCalculations(robotPtr);
-
-#ifdef DEBUG_ACTION_MANAGER
-            qDebug("ActionManager::calculations(), emit startActionCalculations(robotPtr);\n");
-#endif // DEBUG_ACTION_MANAGER
+            number = actionCntr + 1;
+            go = true;
 
         }
-    }
+        else if (flags->isSet(LOOP))
+        {
+            number = 0;
+            go = true;
+        }
+        else
+            calculationsRunning = false;
 
-    checkCalculations = false;
+        if(go)
+        {
+            if (!actions[number]->isCalculated())
+            {
+
+                actions[number]->moveToThread(&calculationThread);
+
+                connect(this, SIGNAL(startActionCalculations(Robot *)),
+                        actions[number], SLOT(calcSlot(Robot *)));
+
+                connect(actions[number], SIGNAL(calculationsFinished()),
+                        this, SLOT(stopCalculationThreadFinished()));
+
+                connect(actions[number], SIGNAL(calculationsFailed()),
+                        this, SLOT(stopCalculationThreadFailed()));
+
+
+                currentlyCalculated = actions[number];
+
+                calculationThread.start();
+
+                emit startActionCalculations(robotPtr);
+
+#ifdef DEBUG_ACTION_MANAGER
+                qDebug("ActionManager::calculations(), emit startActionCalculations(robotPtr);\n");
+#endif // DEBUG_ACTION_MANAGER
+
+            }
+            else
+                calculationsRunning = false;
+        }
+
+        checkCalculations = false;
+    }
 
 }
 
-void ActionManager::stopCalculationThread()
+void ActionManager::stopCalculationThreadFinished()
 {
     calculationThread.quit();
-//  currentlyCalculated->moveToThread(this->thread());
 
     disconnect(currentlyCalculated, SIGNAL(calculationsFinished()), nullptr, nullptr);
     disconnect(this, SIGNAL(startActionCalculations(Robot *)), nullptr, nullptr);
 
     currentlyCalculated = nullptr;
+    calculationsRunning = false;
+}
+
+void ActionManager::stopCalculationThreadFailed()
+{
+    calculationThread.quit();
+
+    qDebug() << "error: calculations failed in action "
+             << ((actionCntr < static_cast<int>(actions.size()) - 1) ? (actionCntr + 1) : 0);
+
+    flags->set(STOP);
+    started = false;
+
+    disconnect(currentlyCalculated, SIGNAL(calculationsFinished()), nullptr, nullptr);
+    disconnect(this, SIGNAL(startActionCalculations(Robot *)), nullptr, nullptr);
+
+    currentlyCalculated = nullptr;
+    calculationsRunning = false;
 }
 
 ////////////////////////////////////////////////////////// setters & getters & adders

@@ -7,6 +7,10 @@ Robot::Robot()
     DOF = 0;
 
     joints.push_back(&TCP);
+
+#ifdef DEBUG_ROBOT
+    qDebug() << "Robot::Robot() : end";
+#endif
 }
 
 
@@ -402,7 +406,7 @@ bool Robot::jacobian(Eigen::MatrixXd & jacobM, Lista<int> & indexes, int setJoin
 
     Eigen::Vector3d jToP,    // vector pointing from currently processed joint to setPoint
                     dJToP,   // rotation around Z derivative - change of jToP vector
-                    setPoint = joints[setJoint]->getLocation();
+                     setPoint = joints[setJoint]->getLocation();
 
     for(int i = 0 ; i < amount; i++)
     {
@@ -493,11 +497,37 @@ bool Robot::set(int startJoint, int endJoint, int setJoint, Eigen::Vector3d & po
 
     // koniec tej części słabego rozwiązania.
 
+    Timer * timer = new Timer();
+
+    timer->start();
+
     while (static_cast<double>((point - joints[setJoint]->getLocation()).norm()) > 1)
     {
         if(!jacobAlgStep(1, startJoint, endJoint, setJoint, point))
             return false;
 
+        if(timer->time() == 1000)
+        {
+            timer->exit();
+
+            qDebug() << "error: Robot::set(int, int, int, Eigen::Vector3d &) :\n"
+                        "obliczenia osiagnely limit czasowy 1000 ms.";
+            return false;
+        }
+
+        /*for (int i = 0; i < static_cast<int>(joints.size()); i++)
+        {
+            if(fabs(joints[i]->getTheta() - joints[i]->getConstructionMinDeg()) < SMALLEST ||
+                    fabs(joints[i]->getTheta() - joints[i]->getConstructionMaxDeg()) < SMALLEST)
+            {
+                qDebug() << "error: Robot::set(int, int, int, Eigen::Vector3d &) :\n"
+                            "przegub "
+                         << i
+                         << " osiagnal swoj zakres ruchu.\nPrzerywam obliczenia.";
+
+                return false;
+            }
+        }*/
 
 #ifdef DEBUG_ROBOT
         qDebug("Robot::set(int, int, int, Eigen::Vector3d &), koniec petli\n");
@@ -521,6 +551,7 @@ bool Robot::set(int startJoint, int endJoint, int setJoint, Eigen::Vector3d & po
     {
         setJointConstructionMinMax(0, tmp[0], tmp[1]);
     }*/
+    timer->exit();
 
     return true;
 }
@@ -609,11 +640,37 @@ bool Robot::setExcluding(int excludedJoint, int setJoint, Eigen::Vector3d & poin
             indexes.push_back(i);
     }
 
+    Timer * timer = new Timer();
+
+    timer->start();
+
     while (static_cast<double>((point - joints[setJoint]->getLocation()).norm()) > 1)
     {
         if(!jacobAlgStep(1, indexes, setJoint, point))
             return false;
 
+        if(timer->time() == 1000)
+        {
+            timer->exit();
+
+            qDebug() << "error: Robot::set(int, int, int, Eigen::Vector3d &) :\n"
+                        "obliczenia osiagnely limit czasowy 1000 ms.";
+            return false;
+        }
+
+        /*for (int i = 0; i < static_cast<int>(joints.size()); i++)
+        {
+            if(fabs(joints[i]->getTheta() - joints[i]->getConstructionMinDeg()) < SMALLEST ||
+                    fabs(joints[i]->getTheta() - joints[i]->getConstructionMaxDeg()) < SMALLEST)
+            {
+                qDebug() << "error: Robot::set(int, int, int, Eigen::Vector3d &) :\n"
+                            "przegub "
+                         << i
+                         << " osiagnal swoj zakres ruchu.\nPrzerywam obliczenia.";
+
+                return false;
+            }
+        }*/
 
 #ifdef DEBUG_ROBOT
         qDebug("Robot::set(int, int, int, Eigen::Vector3d &), koniec petli\n");
@@ -637,6 +694,8 @@ bool Robot::setExcluding(int excludedJoint, int setJoint, Eigen::Vector3d & poin
     {
         setJointConstructionMinMax(0, tmp[0], tmp[1]);
     }*/
+
+    timer->exit();
 
     return true;
 }

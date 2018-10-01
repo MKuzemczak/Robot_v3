@@ -10,10 +10,15 @@
 
 #include <string>
 
+#include <QObject>
 #include <QDebug>
 
-class SerialPort
+//#define DEBUG_SERIALPORT
+
+class SerialPort : public QObject
 {
+    Q_OBJECT
+
 private:
     HANDLE handler;
     bool connected;
@@ -21,6 +26,7 @@ private:
     DWORD errors;
 public:
     SerialPort(std::string portName, int baud);
+    SerialPort(std::string portName, int baud, QObject * parent);
     ~SerialPort();
 
     int readSerialPort(char *buffer, unsigned int buf_size);

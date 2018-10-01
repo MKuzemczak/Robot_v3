@@ -26,7 +26,9 @@ SOURCES += \
     gripperaction.cpp \
     maintab.cpp \
     testtab.cpp \
-    actionlistwidget.cpp
+    timer.cpp \
+    pointlistwidget.cpp \
+    addpointdialog.cpp
 
 HEADERS += \
     gui.h \
@@ -43,4 +45,6 @@ HEADERS += \
     program.h \
     maintab.h \
     testtab.h \
-    actionlistwidget.h
+    timer.h \
+    pointlistwidget.h \
+    addpointdialog.h

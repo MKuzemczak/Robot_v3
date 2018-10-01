@@ -3,7 +3,7 @@
 GUI::GUI(QWidget *parent) :
     QWidget(parent)
 {
-    setWindowState(Qt::WindowMaximized | Qt::WindowMinimized);
+    setWindowState(Qt::WindowMinimized/* | Qt::WindowMaximized*/);
 
     QDesktopWidget * desktop = QApplication::desktop();
 
@@ -15,14 +15,17 @@ GUI::GUI(QWidget *parent) :
     connect(this, SIGNAL(keyPressed(int)), program, SLOT(keyPressed(int)));
     programThread.start();
 
+    QPushButton * b = new QPushButton("Tab 2");
+    dialog = new QDialog(this);
 
     tabWidget = new QTabWidget;
     tabWidget->addTab(new TestTab(), "Test");
     tabWidget->addTab(new MainTab(), "Tab 1");
-    tabWidget->addTab(new QPushButton("Tab 2"), "Tab 2");
+    tabWidget->addTab(b, "Tab 2");
 
     connect(tabWidget->widget(0), SIGNAL(initPressed()), program, SLOT(testRobotInit()));
     connect(tabWidget->widget(0), SIGNAL(startPressed()), program, SLOT(testRun()));
+    connect(b, SIGNAL(pressed()), dialog, SLOT(exec()));
 
     QVBoxLayout * layout = new QVBoxLayout;
     layout->addWidget(tabWidget);

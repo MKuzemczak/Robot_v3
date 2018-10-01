@@ -66,7 +66,7 @@ public:
     void setParentThreadPtr(QThread * ptr);
     QThread * getParentThreadPtr();
 
-    virtual void calculate(Robot & robot);
+    virtual bool calculate(Robot & robot);
     virtual void execute();
     virtual int size();
 
@@ -75,6 +75,7 @@ public slots:
 
 signals:
     void calculationsFinished();
+    void calculationsFailed();
 };
 
 class StraightLineMovAction : public BaseAction
@@ -95,7 +96,7 @@ public:
     {
     }
 
-    virtual void calculate(Robot & robot);
+    virtual bool calculate(Robot & robot);
     virtual void execute();
 
     void lerp(Lista<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> & path);
@@ -116,7 +117,7 @@ public:
                   Flags * flags);
     ~FreeMovAction();
 
-    virtual void calculate(Robot & robot);
+    virtual bool calculate(Robot & robot);
     virtual void execute();
 };
 
@@ -138,7 +139,7 @@ public:
 
     ~ArchMovAction();
 
-    virtual void calculate(Robot & robot);
+    virtual bool calculate(Robot & robot);
 
     virtual void execute();
 
@@ -152,9 +153,11 @@ public:
     DelayAction(double mill);
     ~DelayAction();
 
-    virtual void calculate(Robot & robot)
+    virtual bool calculate(Robot & robot)
     {
         robot.getDOF();
+
+        return true;
     }
     virtual void execute()
     {
@@ -173,7 +176,7 @@ public:
                          Flags * flags);
     ~SetSingleJointAction();
 
-    virtual void calculate(Robot & robot);
+    virtual bool calculate(Robot & robot);
     virtual void execute();
     virtual int size();
 };
@@ -194,7 +197,7 @@ public:
                          Flags * flags);
     ~ConstTCPOrientAction();
 
-    virtual void calculate(Robot & robot);
+    virtual bool calculate(Robot & robot);
     virtual void execute();
 
     void lerp(Lista<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> & path);
@@ -203,7 +206,7 @@ public:
 
 class GripperAction : public BaseAction
 {
-    int newSetting, index;
+    int newSetting, servoIndex;
 
 public:
     GripperAction(int set,
@@ -211,7 +214,7 @@ public:
                   Flags * flags);
     ~GripperAction();
 
-    virtual void calculate(Robot & robot);
+    virtual bool calculate(Robot & robot);
     virtual void execute();
 
     virtual int size();

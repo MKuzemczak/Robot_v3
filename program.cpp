@@ -1,32 +1,32 @@
 #include "program.h"
 
-Program::Program() :
-    arduinoPort(SerialPort("\\\\.\\COM4", 115200))
+Program::Program()
 {
+    arduinoPort = new SerialPort("\\\\.\\COM4", 115200, this);
 
-     if (arduinoPort.isConnected()) std::cout << "Connection Established" << std::endl;
-     else std::cout << "ERROR, check port name";
+    if (arduinoPort->isConnected()) std::cout << "Connection Established" << std::endl;
+    else std::cout << "ERROR, check port name";
 
-     flags = new Flags(this);
+    flags = new Flags(this);
 
-     com = new SerialCommunicatorThread(&arduinoPort, flags);
+    com = new SerialCommunicatorThread(arduinoPort, flags);
 
-     connect(com, SIGNAL(bufferReadyToRead(std::string)), this, SLOT(print(std::string)));
+    connect(com, SIGNAL(bufferReadyToRead(std::string)), this, SLOT(print(std::string)));
 
-     com->start();
+    com->start();
 
-     manager = new ActionManager(flags, &arduinoPort, this);
+    manager = new ActionManager(flags, arduinoPort, this);
 
-     if(arduinoPort.isConnected())
-     {
-        arduinoPort << "A";
+    if(arduinoPort->isConnected())
+    {
+        *arduinoPort << "A";
 
         QThread::msleep(3000);
-     }
+    }
 
-     std::cout << "Program::Program() : koniec" << std::endl;
+    std::cout << "Program::Program() : koniec" << std::endl;
 
-     connect(flags, SIGNAL(movFinReceived()), manager, SLOT(nextStep()));
+    connect(flags, SIGNAL(movFinReceived()), manager, SLOT(nextStep()));
 
 
 
@@ -46,7 +46,7 @@ void Program::keyPressed(int key)
     {
         qDebug() << "W pressed";
 
-        arduinoPort << "B200\n382\n347\n355\n364\n300\nC";
+        *arduinoPort << "B200\n382\n347\n355\n364\n300\nC";
 
         if(flags->isSet(ARDUINO_MOV_FIN))
             qDebug() << "Mov fin";
@@ -57,7 +57,7 @@ void Program::keyPressed(int key)
         qDebug() << "S pressed";
         char buf[MAX_DATA_LENGTH];
 
-        if(arduinoPort.readSerialPort(buf, MAX_DATA_LENGTH) != 0)
+        if(arduinoPort->readSerialPort(buf, MAX_DATA_LENGTH) != 0)
         {
             qDebug() << "hehe";
             qDebug() << buf;
@@ -75,7 +75,7 @@ void Program::testRobotInit()
     qDebug() << "Program::testRObotInit() : start";
 #endif
 
-    robot = Robot();
+    //robot = Robot();
 
     robot.addRegJoint(-90, 0, 0);
     robot.addRegJoint(90, 0, 0);
@@ -108,10 +108,12 @@ void Program::testRobotInit()
 
     robot.setTCPOrient(robot.getJointLocation(robot.getDOF() - 1) - robot.getTCPlocation());
 
-    arduinoPort << "B350\n382\n347\n355\n364\n362\n500\nC";
+    *arduinoPort << "B350\n382\n347\n355\n364\n362\n500\nC";
 
 #ifdef PROGRAM_DEBUG
     qDebug() << "Program::testRobotInit() : end";
+
+    qDebug() << "program thread(): " << thread() << "\nSerialPort thread(): " << arduinoPort->thread();
 #endif
 
 }
@@ -124,7 +126,7 @@ void Program::testRun()
 
     //flags->set(LOOP);
 
-    manager->clear();
+    //manager->clear();
 
     Eigen::Vector3d v0, v1, robotBase;
 
@@ -137,11 +139,22 @@ void Program::testRun()
     manager->addSetSingleJointAction(4, -150);
     manager->addConstTCPOrientAction(v0, v1);
     manager->addSetSingleJointAction(4, -179);
-    manager->addGripperAction(300);
+    manager->addGripperAction(400);
     v0 << 150, -30, 0;
     manager->addConstTCPOrientAction(v1, v0);
-    manager->addGripperAction(520);
+    manager->addGripperAction(550);
     manager->addConstTCPOrientAction(v0, v1);
+    v0 << 150, 50, 50;
+    manager->addConstTCPOrientAction(v1, v0);
+    v1 << 150, -30, 50;
+    manager->addConstTCPOrientAction(v0, v1);
+    manager->addGripperAction(400);
+    manager->addConstTCPOrientAction(v1, v0);
+    v1 << 150, 50, 0;
+    manager->addConstTCPOrientAction(v0, v1);
+    manager->addSetSingleJointAction(4, -90);
+    manager->addStraightLineMovAction(v1, robotBase);
+
 
 
 

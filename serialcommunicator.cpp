@@ -41,6 +41,9 @@ void SerialCommunicatorThread::run()
             {
                 flags->set(byte);
 
+                if(byte == ARDUINO_MOV_FIN)
+                    qDebug() << "Mov fin received";
+
 #ifdef DEBUG_SERIAL_COMMUNICATOR
                 qDebug() << "SerialCommunicator::checkComFlags() : set flag: " << byte;
 #endif

@@ -4,7 +4,7 @@ MainTab::MainTab(QWidget *parent) : QWidget(parent)
 {
     label0 = new QLabel("Hello");
     label1 = new QLabel("there");
-    actionList = new ActionListWidget();
+    actionList = new PointListWidget();
 
     QHBoxLayout *layout = new QHBoxLayout;
 

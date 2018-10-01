@@ -2,12 +2,13 @@
 
 #include <QThread>
 #include <QApplication>
+#include <QTimer>
 
 
 #include "baseaction.h"
 #include "lista.h"
 
-#define DEBUG_ACTION_MANAGER
+//#define DEBUG_ACTION_MANAGER
 
 class ActionManager : public QObject
 {
@@ -16,7 +17,8 @@ class ActionManager : public QObject
     Lista<BaseAction*, Eigen::aligned_allocator<BaseAction*>> actions;
     bool stepInProgress,
         checkCalculations,
-        started;
+        started,
+        calculationsRunning;
     int actionCntr;
 
     Robot* robotPtr;
@@ -119,7 +121,8 @@ public:
     }
 
 public slots:
-    void stopCalculationThread();
+    void stopCalculationThreadFinished();
+    void stopCalculationThreadFailed();
     void nextStep();
     void stop();
     bool start();

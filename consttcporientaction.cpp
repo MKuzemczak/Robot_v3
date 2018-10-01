@@ -1,6 +1,6 @@
 #include "baseaction.h"
 
-#define DEBUG_CONSTTCP
+//#define DEBUG_CONSTTCP
 
 ConstTCPOrientAction::ConstTCPOrientAction(Eigen::Vector3d start,
                                            Eigen::Vector3d dest,
@@ -20,7 +20,7 @@ ConstTCPOrientAction::~ConstTCPOrientAction()
 
 }
 
-void ConstTCPOrientAction::calculate(Robot & robot)
+bool ConstTCPOrientAction::calculate(Robot & robot)
 {
     Lista<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> path;
     Eigen::Vector3d orient;
@@ -38,9 +38,19 @@ void ConstTCPOrientAction::calculate(Robot & robot)
 
         jointLoc = path[i] + orient;
 
-        robot.set(0, robot.getRegJointsAmount() - 1, robot.getDOF() - 1, jointLoc);
+        if(!robot.set(0, robot.getRegJointsAmount() - 1, robot.getDOF() - 1, jointLoc))
+        {
+            emit calculationsFailed();
+            moveToThread(getParentThreadPtr());
+            return false;
+        }
 
-        robot.set(robot.getRegJointsAmount(), robot.getDOF() - 1, robot.getDOF(), path[i]);
+        if(!robot.set(robot.getRegJointsAmount(), robot.getDOF() - 1, robot.getDOF(), path[i]))
+        {
+            emit calculationsFailed();
+            moveToThread(getParentThreadPtr());
+            return false;
+        }
 
         Lista<int> s;
 
@@ -50,10 +60,16 @@ void ConstTCPOrientAction::calculate(Robot & robot)
 
     }
 
+#ifdef DEBUG_CONSTTCP
+    qDebug() << "ConstTCPOrientAction::calculate(Robot&) : end";
+#endif
+
     setCalculated();
     resetDone();
     emit calculationsFinished();
     moveToThread(getParentThreadPtr());
+
+    return true;
 }
 
 void ConstTCPOrientAction::execute()

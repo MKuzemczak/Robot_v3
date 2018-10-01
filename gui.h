@@ -8,6 +8,7 @@
 #include <QTabWidget>
 #include <QVBoxLayout>
 #include <QDesktopWidget>
+#include <QDialog>
 
 #include <iostream>
 
@@ -24,7 +25,7 @@ class GUI : public QWidget
     Program * program;
 
 /////////////////////////////////////// GUI
-
+    QDialog * dialog;
 
     QTabWidget * tabWidget;
 /////////////////////////////////////// !GUI

@@ -16,7 +16,7 @@ FreeMovAction::~FreeMovAction()
 
 }
 
-void FreeMovAction::calculate(Robot & robot)
+bool FreeMovAction::calculate(Robot & robot)
 {
     robot.setRegional(destination);
 
@@ -24,6 +24,8 @@ void FreeMovAction::calculate(Robot & robot)
 
     emit calculationsFinished();
     moveToThread(getParentThreadPtr());
+
+    return true;
 }
 
 void FreeMovAction::execute()

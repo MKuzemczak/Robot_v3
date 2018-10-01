@@ -16,7 +16,7 @@ StraightLineMovAction::StraightLineMovAction(Eigen::Vector3d start,
         setFlagsPtr(flags);
 }
 
-void StraightLineMovAction::calculate(Robot & robot)
+bool StraightLineMovAction::calculate(Robot & robot)
 {
         Lista<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> path;
 
@@ -33,8 +33,13 @@ void StraightLineMovAction::calculate(Robot & robot)
                 qDebug("Straight Line Action, calculate(), poczatek petli\n");
 #endif // DEBUG
 
-
-                robot.setRegional(path[i]);
+                if(!robot.set(0, robot.getRegJointsAmount() - 1, robot.getDOF(), path[i]))
+                {
+                    emit calculationsFailed();
+                    moveToThread(getParentThreadPtr());
+                    return false;
+                }
+                //robot.setRegional(path[i]);
                 //robot.set(0, robot.getDOF() - 1, robot.getDOF(), path[i]); // temporal
 
 #ifdef DEBUG_STRAIGHT_LINE_ACTION
@@ -70,6 +75,8 @@ void StraightLineMovAction::calculate(Robot & robot)
         resetDone();
         emit calculationsFinished();
         moveToThread(getParentThreadPtr());
+
+        return true;
 }
 
 void StraightLineMovAction::execute()

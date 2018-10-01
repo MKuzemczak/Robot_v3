@@ -1,6 +1,6 @@
 #include "baseaction.h"
 
-#define DEBUG_SETSINGLE
+///#define DEBUG_SETSINGLE
 
 SetSingleJointAction::SetSingleJointAction(int j, int deg,
                                            SerialPort * port,
@@ -19,7 +19,7 @@ SetSingleJointAction::~SetSingleJointAction()
 
 }
 
-void SetSingleJointAction::calculate(Robot & robot)
+bool SetSingleJointAction::calculate(Robot & robot)
 {
     int currentThetaDeg = static_cast<int>(robot.getJointThetaRad(joint) / DEG_TO_RAD);
     Eigen::Vector3d constTCPlocation = robot.getTCPlocation();
@@ -34,7 +34,12 @@ void SetSingleJointAction::calculate(Robot & robot)
 
         robot.setThetaDeg(joint, i);
 
-        robot.setExcluding(joint, robot.getDOF(), constTCPlocation);
+        if(!robot.setExcluding(joint, robot.getDOF(), constTCPlocation))
+        {
+            emit calculationsFailed();
+            moveToThread(getParentThreadPtr());
+            return false;
+        }
 
         Lista<int> s;
 
@@ -53,6 +58,8 @@ void SetSingleJointAction::calculate(Robot & robot)
     resetDone();
     emit calculationsFinished();
     moveToThread(getParentThreadPtr());
+
+    return true;
 }
 
 void SetSingleJointAction::execute()

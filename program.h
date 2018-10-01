@@ -10,7 +10,7 @@
 #include "serialcommunicator.h"
 #include "actionmanager.h"
 
-#define PROGRAM_DEBUG
+//#define PROGRAM_DEBUG
 
 
 
@@ -24,7 +24,7 @@ class Program : public QObject
 
     ActionManager * manager;
 
-    SerialPort arduinoPort;
+    SerialPort * arduinoPort;
 
     Robot robot;
 

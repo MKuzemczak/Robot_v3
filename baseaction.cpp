@@ -18,9 +18,11 @@ BaseAction::~BaseAction()
 
 }
 
-void BaseAction::calculate(Robot & robot)
+bool BaseAction::calculate(Robot & robot)
 {
     robot.getDOF();
+
+    return true;
 }
 
 void BaseAction::calcSlot(Robot * robot)

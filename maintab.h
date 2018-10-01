@@ -6,7 +6,7 @@
 #include <QLabel>
 #include <QHBoxLayout>
 
-#include "actionlistwidget.h"
+#include "pointlistwidget.h"
 
 class MainTab : public QWidget
 {
@@ -15,7 +15,7 @@ class MainTab : public QWidget
     QLabel * label0,
             * label1;
 
-    ActionListWidget * actionList;
+    PointListWidget * actionList;
 
 public:
     explicit MainTab(QWidget *parent = nullptr);
