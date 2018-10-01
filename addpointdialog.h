@@ -25,8 +25,10 @@ class AddPointDialog : public QDialog
 
 
 public:
-    explicit AddPointDialog(QWidget * parent);
+    explicit AddPointDialog(QWidget * parent = nullptr);
     ~AddPointDialog();
+
+    void setDefault(int x, int y, int z);
 
 signals:
     void addValues(int, int, int);

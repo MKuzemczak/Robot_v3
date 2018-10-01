@@ -47,11 +47,12 @@ PointListWidget::PointListWidget(QWidget *parent) : QWidget(parent)
 
     addDialog = new AddPointDialog(this);
 
-    connect(addButton, SIGNAL(clicked()), addDialog, SLOT(exec()));
+    connect(addButton, SIGNAL(clicked()), this, SLOT(openAddDialog()));
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(deletePoint()));
     connect(addDialog, SIGNAL(addValues(int, int, int)), this, SLOT(addPoint(int, int, int)));
 
-    setMaximumWidth(183);
+    //setMaximumWidth(183);
+
 }
 
 void PointListWidget::selectionChangedSlot(const QItemSelection &, const QItemSelection &)
@@ -91,6 +92,7 @@ void PointListWidget::addPoint(int x, int y, int z)
 
     if((count - 1)%2 == 0)
         table->verticalHeaderItem(count - 1)->setBackgroundColor(QColor(0,0,0,10));
+
 }
 
 void PointListWidget::deletePoint()
@@ -98,6 +100,13 @@ void PointListWidget::deletePoint()
     if(table->currentRow() >= 0)
     {
         table->removeRow(table->currentRow());
-        //table->setRowCount(table->rowCount() - 1);
     }
+}
+
+void PointListWidget::openAddDialog(int x, int y, int z)
+{
+    addDialog->setDefault(x, y, z);
+    addDialog->show();
+    addDialog->raise();
+    addDialog->activateWindow();
 }

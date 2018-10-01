@@ -5,8 +5,11 @@
 #include <QScrollArea>
 #include <QLabel>
 #include <QHBoxLayout>
+#include <QGridLayout>
+#include <QSplitter>
 
 #include "pointlistwidget.h"
+#include "actionlistwidget.h"
 
 class MainTab : public QWidget
 {
@@ -15,7 +18,8 @@ class MainTab : public QWidget
     QLabel * label0,
             * label1;
 
-    PointListWidget * actionList;
+    PointListWidget * pointList;
+    ActionListWidget * actionList;
 
 public:
     explicit MainTab(QWidget *parent = nullptr);

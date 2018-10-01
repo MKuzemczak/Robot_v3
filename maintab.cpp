@@ -2,15 +2,17 @@
 
 MainTab::MainTab(QWidget *parent) : QWidget(parent)
 {
-    label0 = new QLabel("Hello");
-    label1 = new QLabel("there");
-    actionList = new PointListWidget();
+    pointList = new PointListWidget();
+    actionList = new ActionListWidget();
 
-    QHBoxLayout *layout = new QHBoxLayout;
+    QSplitter * splitter = new QSplitter(this);
+    splitter->setOrientation(Qt::Vertical);
+    splitter->addWidget(pointList);
+    splitter->addWidget(actionList);
 
-    layout->addWidget(label0);
-    layout->addWidget(label1);
-    layout->addWidget(actionList);
+    QGridLayout *layout = new QGridLayout;
+
+    layout->addWidget(splitter, 0, 0);
 
     this->setLayout(layout);
 }

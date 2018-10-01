@@ -28,7 +28,8 @@ SOURCES += \
     testtab.cpp \
     timer.cpp \
     pointlistwidget.cpp \
-    addpointdialog.cpp
+    addpointdialog.cpp \
+    actionlistwidget.cpp
 
 HEADERS += \
     gui.h \
@@ -47,4 +48,5 @@ HEADERS += \
     testtab.h \
     timer.h \
     pointlistwidget.h \
-    addpointdialog.h
+    addpointdialog.h \
+    actionlistwidget.h

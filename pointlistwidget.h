@@ -17,9 +17,6 @@ class PointListWidget : public QWidget
 {
     Q_OBJECT
 
-    //QListView * listView;
-    //QStandardItemModel * standardModel;
-    //QStandardItem *rootNode;
     QTableWidget * table;
     QLabel * label;
     QPushButton *addButton,
@@ -36,6 +33,7 @@ public slots:
     void selectionChangedSlot(const QItemSelection &, const QItemSelection &);
     void addPoint(int x, int y, int z);
     void deletePoint();
+    void openAddDialog(int x = 0, int y = 0, int z = 0);
 };
 
 #endif // POINTLISTWIDGET_H
