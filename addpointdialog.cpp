@@ -4,6 +4,7 @@ AddPointDialog::AddPointDialog(QWidget * parent) :
     QDialog(parent)
 {
     setFixedSize(300, 150);
+    setWindowTitle("Dodaj punkt");
 
     addButton = new QPushButton("Dodaj", this);
     cancelButton = new QPushButton("Anuluj", this);

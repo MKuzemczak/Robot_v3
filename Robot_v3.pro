@@ -29,7 +29,9 @@ SOURCES += \
     timer.cpp \
     pointlistwidget.cpp \
     addpointdialog.cpp \
-    actionlistwidget.cpp
+    actionlistwidget.cpp \
+    addactiondialog.cpp \
+    actiontype.cpp
 
 HEADERS += \
     gui.h \
@@ -49,4 +51,6 @@ HEADERS += \
     timer.h \
     pointlistwidget.h \
     addpointdialog.h \
-    actionlistwidget.h
+    actionlistwidget.h \
+    actiontype.h \
+    addactiondialog.h

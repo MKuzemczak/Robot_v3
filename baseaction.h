@@ -6,18 +6,8 @@
 #include "lista.h"
 #include "robot.h"
 #include "comflags.h"
+#include "actiontype.h"
 
-typedef enum
-{
-    STRAIGHT_LINE,
-    FREE,
-    ARCH,
-    LOCAL_CHANGE,
-    DELAY,
-    SINGLE,
-    CONST_STRAIGHT,
-    GRIPPER
-} ActionType;
 
 
 /* Klasa Action, po której dziedziczą klasy pochodne,

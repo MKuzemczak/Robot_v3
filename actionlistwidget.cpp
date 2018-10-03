@@ -40,4 +40,50 @@ ActionListWidget::ActionListWidget(QWidget *parent) : QWidget(parent)
     layout->addWidget(deleteButton, 5, 1);
 
     setLayout(layout);
+
+    addDialog = new AddActionDialog(this);
+
+    connect(addButton, SIGNAL(clicked()), this, SLOT(openAddDialog()));
+    connect(deleteButton, SIGNAL(clicked()), this, SLOT(deleteAction()));
+    //connect(addDialog, SIGNAL(addValues(int, int, int)), this, SLOT(addPoint(int, int, int)));
+
+}
+
+void ActionListWidget::addAction(ActionType type, QString info)
+{
+    emit actionAdded(type, info);
+
+    int rowCount = table->rowCount();
+
+    table->setRowCount(rowCount+1);
+
+    table->setItem(rowCount, 0, new QTableWidgetItem(actionTypeToString(type)));
+    table->setItem(rowCount, 1, new QTableWidgetItem(info));
+
+    if(rowCount%2 == 0)
+    {
+        table->item(rowCount,0)->setBackgroundColor(QColor(0,0,0,10));
+        table->item(rowCount,1)->setBackgroundColor(QColor(0,0,0,10));
+    }
+
+    table->setRowHeight(rowCount, 10);
+    table->setVerticalHeaderItem(rowCount, new QTableWidgetItem(QString("%1").arg(rowCount)));
+
+    if(rowCount%2 == 0)
+        table->verticalHeaderItem(rowCount)->setBackgroundColor(QColor(0,0,0,10));
+}
+
+void ActionListWidget::deleteAction()
+{
+    if(table->currentRow() >= 0)
+    {
+        table->removeRow(table->currentRow());
+    }
+}
+
+void ActionListWidget::openAddDialog()
+{
+    addDialog->show();
+    addDialog->raise();
+    addDialog->activateWindow();
 }
