@@ -2,6 +2,7 @@
 #define ACTIONTYPE_H
 
 #include <QString>
+#include <QDebug>
 
 typedef enum
 {

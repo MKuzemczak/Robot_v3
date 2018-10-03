@@ -17,18 +17,19 @@ QString actionTypeToString(ActionType type)
         return QString("Local change");
         break;
     case DELAY:
-        QString("Postój");
+        return QString("Postój");
         break;
     case SINGLE:
-        QString("Pojedynczy przegub");
+        return QString("Pojedynczy przegub");
         break;
     case CONST_STRAIGHT:
-        QString("constTCPorient");
+        return QString("const TCP orient");
         break;
     case GRIPPER:
-        QString("Chwytak");
+        return QString("Chwytak");
         break;
     }
+    return QString();
 }
 
 ActionType stringToActionType(QString s)
@@ -45,7 +46,7 @@ ActionType stringToActionType(QString s)
         return DELAY;
     else if(s == "Pojedynczy przegub")
         return SINGLE;
-    else if(s == "constTCPorient")
+    else if(s == "const TCP orient")
         return CONST_STRAIGHT;
     else if(s == "Chwytak")
         return GRIPPER;

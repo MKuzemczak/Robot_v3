@@ -37,8 +37,13 @@ public:
 
     void enableAll();
     void disableAll();
-    void setValues(ActionType type, int start, int mid, int end, int time, int angle);
-    void setValues(ActionType type, QString start, QString mid, QString end, QString time, QString angle);
+    void setType(ActionType type);
+    void setStart(QString s);
+    void setMid(QString s);
+    void setEnd(QString s);
+    void setTime(QString s);
+    void setAngle(QString s);
+    void setInfo(QStringList s);
 
 signals:
     void addValues(ActionType type, QString info);

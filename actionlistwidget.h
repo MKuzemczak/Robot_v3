@@ -27,6 +27,12 @@ class ActionListWidget : public QWidget
 public:
     explicit ActionListWidget(QWidget *parent = nullptr);
 
+    QStringList getInfo(QString s);
+    void setPointListPtr(PointListWidget * ptr)
+    {
+        pointList = ptr;
+    }
+
 signals:
     void actionAdded(ActionType type, QString info);
 public slots:

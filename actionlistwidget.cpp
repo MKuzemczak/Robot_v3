@@ -9,10 +9,10 @@ ActionListWidget::ActionListWidget(QWidget *parent) : QWidget(parent)
     QStringList horizontalHeaders = {"Akcja", "Info"};
     table->setHorizontalHeaderLabels(horizontalHeaders);
 
-    table->setColumnWidth(0, 50);
-    table->setColumnWidth(1, 50);
+    table->setColumnWidth(0, 100);
+    table->setColumnWidth(1, 100);
 
-    for(int i = 0; i < 100; i++)
+    /*for(int i = 0; i < 100; i++)
     {
         table->setRowCount(i+1);
         for(int j = 0; j < 2; j++)
@@ -25,7 +25,7 @@ ActionListWidget::ActionListWidget(QWidget *parent) : QWidget(parent)
         table->setVerticalHeaderItem(i, new QTableWidgetItem(QString("%1").arg(i)));
         if(i%2 == 0)
             table->verticalHeaderItem(i)->setBackgroundColor(QColor(0,0,0,10));
-    }
+    }*/
 
     label = new QLabel("Lista akcji", this);
     label->setMaximumHeight(13);
@@ -41,12 +41,10 @@ ActionListWidget::ActionListWidget(QWidget *parent) : QWidget(parent)
 
     setLayout(layout);
 
-    addDialog = new AddActionDialog(this);
+    addDialog = nullptr;
 
     connect(addButton, SIGNAL(clicked()), this, SLOT(openAddDialog()));
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(deleteAction()));
-    //connect(addDialog, SIGNAL(addValues(int, int, int)), this, SLOT(addPoint(int, int, int)));
-
 }
 
 void ActionListWidget::addAction(ActionType type, QString info)
@@ -57,8 +55,14 @@ void ActionListWidget::addAction(ActionType type, QString info)
 
     table->setRowCount(rowCount+1);
 
+    qDebug() << "ActionListWidget::addAction(ActionType type, QString info):\n"
+             << "table->rowCount() == " << table->rowCount();
+
     table->setItem(rowCount, 0, new QTableWidgetItem(actionTypeToString(type)));
     table->setItem(rowCount, 1, new QTableWidgetItem(info));
+
+    qDebug() << "ActionListWidget::addAction(ActionType type, QString info):\n"
+             << table->item(0,0) << "\n" << table->item(0,1);
 
     if(rowCount%2 == 0)
     {
@@ -83,7 +87,25 @@ void ActionListWidget::deleteAction()
 
 void ActionListWidget::openAddDialog()
 {
+    if(addDialog != nullptr)
+        delete addDialog;
+
+    addDialog = new AddActionDialog(this);
+
+    connect(addDialog, SIGNAL(addValues(ActionType, QString)), this, SLOT(addAction(ActionType, QString)));
+
+    if(table->rowCount() > 0)
+    {
+        addDialog->setType(stringToActionType(table->item(table->rowCount() - 1, 0)->text()));
+        addDialog->setInfo(getInfo(table->item(table->rowCount() - 1, 1)->text()));
+    }
+
     addDialog->show();
     addDialog->raise();
     addDialog->activateWindow();
+}
+
+QStringList ActionListWidget::getInfo(QString s)
+{
+    return s.split(",");
 }

@@ -53,7 +53,7 @@ void AddPointDialog::addPressed()
 {
     emit addValues(xEdit->text().toInt(), yEdit->text().toInt(), zEdit->text().toInt());
 
-    reject();
+    accept();
 }
 
 void AddPointDialog::setDefault(int x, int y, int z)
