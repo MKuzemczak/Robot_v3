@@ -21,10 +21,24 @@ AddActionDialog::AddActionDialog(QWidget * parent) :
     timeEdit = new QLineEdit(this);
     newAngleEdit = new QLineEdit(this);
 
+    startPointEdit->setPlaceholderText("np.: P1, p2");
+    midPointEdit->setPlaceholderText("np.: P1, p2");
+    endPointEdit->setPlaceholderText("np.: P1, p2");
+    timeEdit->setPlaceholderText("np.: 1000");
+    newAngleEdit->setPlaceholderText("np.: 45");
+
+    QRegExpValidator * v = new QRegExpValidator(QRegExp("[pP][0-9]{1,4}"), this);
+
+    startPointEdit->setValidator(v);
+    midPointEdit->setValidator(v);
+    endPointEdit->setValidator(v);
+    timeEdit->setValidator(new QIntValidator(1, 1000000, this));
+    newAngleEdit->setValidator(new QIntValidator(-180, 600, this));
+
     startPointLabel = new QLabel("Punkt startowy", this);
     midPointLabel = new QLabel("Punkt pośredni", this);
     endPointLabel = new QLabel("Punkt końcowy", this);
-    timeLabel = new QLabel("Czas", this);
+    timeLabel = new QLabel("Czas [ms]", this);
     newAngleLabel = new QLabel("Nowy kąt", this);
 
     addButton = new QPushButton("Dodaj", this);
@@ -56,30 +70,33 @@ AddActionDialog::AddActionDialog(QWidget * parent) :
 
 void AddActionDialog::typeChanged(int index)
 {
+    enabledEdits.clear();
+
     switch(index)
     {
     case STRAIGHT_LINE:
     case FREE:
     case CONST_STRAIGHT:
-        disableAll();
-        startPointEdit->setDisabled(false);
-        endPointEdit->setDisabled(false);
+        enabledEdits.push_back(startPointEdit);
+        enabledEdits.push_back(endPointEdit);
         break;
     case ARCH:
-        enableAll();
-        timeEdit->setDisabled(true);
-        newAngleEdit->setDisabled(true);
+        enabledEdits.push_back(startPointEdit);
+        enabledEdits.push_back(midPointEdit);
+        enabledEdits.push_back(endPointEdit);
         break;
     case DELAY:
-        disableAll();
-        timeEdit->setDisabled(false);
+        enabledEdits.push_back(timeEdit);
         break;
     case GRIPPER:
     case SINGLE:
-        disableAll();
-        newAngleEdit->setDisabled(false);
+        enabledEdits.push_back(newAngleEdit);
         break;
     }
+
+    disableAll();
+    for(QLineEdit * l : enabledEdits)
+        l->setEnabled(true);
 }
 
 void AddActionDialog::enableAll()
@@ -132,58 +149,34 @@ void AddActionDialog::setAngle(QString s)
 
 void AddActionDialog::setInfo(QStringList s)
 {
-    switch(typeList->currentIndex())
-    {
-    case STRAIGHT_LINE:
-    case FREE:
-    case CONST_STRAIGHT:
-        startPointEdit->setText(s.at(0));
-        endPointEdit->setText(s.at(1));
-        break;
-    case ARCH:
-        startPointEdit->setText(s.at(0));
-        midPointEdit->setText(s.at(1));
-        endPointEdit->setText(s.at(2));
-        break;
-    case DELAY:
-        timeEdit->setText(s.at(0));
-        break;
-    case GRIPPER:
-    case SINGLE:
-        newAngleEdit->setText(s.at(0));
-        break;
+    if(s.size() != static_cast<int>(enabledEdits.size()))
+        qDebug() << "error: AddActionDialog::setInfo(QStringList) : QStringList::size() != Lista::size()";
 
-    }
+    enabledEdits[0]->setText(s.at(s.size() - 1));
 }
 
 void AddActionDialog::addClicked()
 {
     QString info;
 
-    switch(typeList->currentIndex())
+    for(int i = 0; i < static_cast<int>(enabledEdits.size()); i++)
     {
-    case STRAIGHT_LINE:
-    case FREE:
-    case CONST_STRAIGHT:
-        info += startPointEdit->text();
-        info += ",";
-        info += endPointEdit->text();
-        break;
-    case ARCH:
-        info += startPointEdit->text();
-        info += ",";
-        info += midPointEdit->text();
-        info += ",";
-        info += endPointEdit->text();
-        break;
-    case DELAY:
-        info += timeEdit->text();
-        break;
-    case GRIPPER:
-    case SINGLE:
-        info += newAngleEdit->text();
-        break;
+        QString txt = enabledEdits[i]->text();
+        txt = txt.toUpper();
+
+        if(txt.at(0) == "P" && !pointList->containsName(txt))
+        {
+            qDebug() << "error: AddActionDialog::addClicked() : punkt " << txt << " nie istnieje";
+            return;
+        }
+
+        info += enabledEdits[i]->text();
+
+        if(i < static_cast<int>(enabledEdits.size()) - 1)
+            info += ",";
     }
+
+    info = info.toUpper();
 
     emit addValues(stringToActionType(typeList->currentText()), info);
     accept();

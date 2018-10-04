@@ -11,6 +11,8 @@
 #include <QComboBox>
 
 #include "actiontype.h"
+#include "pointlistwidget.h"
+#include "lista.h"
 
 class AddActionDialog : public QDialog
 {
@@ -32,6 +34,10 @@ class AddActionDialog : public QDialog
 
     QPushButton * addButton, * cancelButton;
 
+    PointListWidget * pointList;
+
+    Lista<QLineEdit*> enabledEdits;
+
 public:
     AddActionDialog(QWidget * parent = nullptr);
 
@@ -44,7 +50,10 @@ public:
     void setTime(QString s);
     void setAngle(QString s);
     void setInfo(QStringList s);
-
+    void setPointListPtr(PointListWidget * ptr)
+    {
+        pointList = ptr;
+    }
 signals:
     void addValues(ActionType type, QString info);
 

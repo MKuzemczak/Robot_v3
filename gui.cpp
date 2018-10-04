@@ -19,25 +19,17 @@ GUI::GUI(QWidget *parent) :
     dialog = new QDialog(this);
 
     tabWidget = new QTabWidget;
-    tabWidget->addTab(new TestTab(), "Test");
     tabWidget->addTab(new MainTab(), "Tab 1");
+    tabWidget->addTab(new TestTab(), "Test");
     tabWidget->addTab(b, "Tab 2");
 
-    connect(tabWidget->widget(0), SIGNAL(initPressed()), program, SLOT(testRobotInit()));
-    connect(tabWidget->widget(0), SIGNAL(startPressed()), program, SLOT(testRun()));
+    connect(tabWidget->widget(1), SIGNAL(initPressed()), program, SLOT(testRobotInit()));
+    connect(tabWidget->widget(1), SIGNAL(startPressed()), program, SLOT(testRun()));
     connect(b, SIGNAL(pressed()), dialog, SLOT(exec()));
 
     QVBoxLayout * layout = new QVBoxLayout;
     layout->addWidget(tabWidget);
     this->setLayout(layout);
-
-/*    setWindowFlags(Qt::Window
-    | Qt::WindowMinimizeButtonHint
-    | Qt::WindowMaximizeButtonHint
-    | Qt::WindowCloseButtonHint);
-*/
-
-
 }
 
 

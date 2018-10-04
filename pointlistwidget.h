@@ -27,6 +27,11 @@ class PointListWidget : public QWidget
 public:
     explicit PointListWidget(QWidget *parent = nullptr);
 
+
+    int operator () (int point, int index);
+
+    bool containsName(QString n);
+
 signals:
 
 public slots:

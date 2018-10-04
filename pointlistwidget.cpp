@@ -51,15 +51,10 @@ PointListWidget::PointListWidget(QWidget *parent) : QWidget(parent)
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(deletePoint()));
     connect(addDialog, SIGNAL(addValues(int, int, int)), this, SLOT(addPoint(int, int, int)));
 
-    //setMaximumWidth(183);
-
 }
 
 void PointListWidget::selectionChangedSlot(const QItemSelection &, const QItemSelection &)
 {
-    //const QModelIndex index = listView->selectionModel()->currentIndex();
-
-    //qDebug() << index;
 }
 
 
@@ -109,4 +104,20 @@ void PointListWidget::openAddDialog(int x, int y, int z)
     addDialog->show();
     addDialog->raise();
     addDialog->activateWindow();
+}
+
+int PointListWidget::operator () (int point, int index)
+{
+    return table->item(point, index)->text().toInt();
+}
+
+bool PointListWidget::containsName(QString n)
+{
+    for(int i = 0; i < table->rowCount(); i++)
+    {
+        if(n == table->verticalHeaderItem(i)->text())
+            return true;
+    }
+
+    return false;
 }
