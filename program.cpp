@@ -28,7 +28,7 @@ Program::Program()
 
     connect(flags, SIGNAL(movFinReceived()), manager, SLOT(nextStep()));
 
-
+    pointList = nullptr;
 
 }
 
@@ -110,6 +110,8 @@ void Program::testRobotInit()
 
     *arduinoPort << "B350\n382\n347\n355\n364\n362\n500\nC";
 
+    manager->setRobotPtr(&robot);
+
 #ifdef PROGRAM_DEBUG
     qDebug() << "Program::testRobotInit() : end";
 
@@ -158,13 +160,73 @@ void Program::testRun()
 
 
 
-    manager->setRobotPtr(&robot);
 
     manager->start();
 
 #ifdef PROGRAM_DEBUG
     qDebug() << "Program::testRun() : end";
 #endif
+}
+
+void Program::addAction(ActionType type, QString info)
+{
+    if(pointList == nullptr)
+    {
+        qDebug() << "error: Program::addAction(ActionType, QString) :\n"
+                    "nullptr wskaźnik na listę punktów";
+        return;
+    }
+
+    QStringList s = info.split(",");
+
+    if(type == STRAIGHT_LINE || type == FREE || type == CONST_STRAIGHT)
+    {
+        int p1 = s.at(0).mid(1).toInt(),
+                p2 = s.at(1).mid(1).toInt();
+
+        Eigen::Vector3d start, end;
+        start << (*pointList)(p1, 0), (*pointList)(p1, 1), (*pointList)(p1, 2);
+        end << (*pointList)(p2, 0), (*pointList)(p2, 1), (*pointList)(p2, 2);
+
+        switch(type)
+        {
+        case STRAIGHT_LINE:
+            manager->addStraightLineMovAction(start, end);
+            break;
+        case FREE:
+            manager->addFreeMovAction(end);
+            break;
+        case CONST_STRAIGHT:
+            manager->addConstTCPOrientAction(start, end);
+            break;
+        }
+    }
+    else if (type == ARCH)
+    {
+        int p1 = s.at(0).mid(1).toInt(),
+                p2 = s.at(1).mid(1).toInt(),
+                p3 = s.at(2).mid(1).toInt();
+
+        Eigen::Vector3d start, mid, end;
+        start << (*pointList)(p1, 0), (*pointList)(p1, 1), (*pointList)(p1, 2);
+        mid << (*pointList)(p2, 0), (*pointList)(p2, 1), (*pointList)(p2, 2);
+        mid << (*pointList)(p3, 0), (*pointList)(p3, 1), (*pointList)(p3, 2);
+    }
+    else if (type == DELAY)
+    {
+        //int time = s.at(0).toInt();
+    }
+    else if(type == SINGLE)
+    {
+        int joint = s.at(0).toInt(),
+                angle = s.at(1).toInt();
+
+        manager->addSetSingleJointAction(joint, angle);
+    }
+    else if (type == GRIPPER)
+    {
+        manager->addGripperAction(s.at(0).toInt());
+    }
 }
 
 Program::~Program()

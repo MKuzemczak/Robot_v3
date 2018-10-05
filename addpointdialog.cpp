@@ -21,6 +21,10 @@ AddPointDialog::AddPointDialog(QWidget * parent) :
     yEdit = new QLineEdit("0", this);
     zEdit = new QLineEdit("0", this);
 
+    xEdit->setValidator(new QIntValidator(-1000, 1000, this));
+    yEdit->setValidator(new QIntValidator(-1000, 1000, this));
+    zEdit->setValidator(new QIntValidator(-1000, 1000, this));
+
     xLabel->setBuddy(xEdit);
     yLabel->setBuddy(yEdit);
     zLabel->setBuddy(zEdit);

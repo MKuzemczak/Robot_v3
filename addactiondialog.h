@@ -24,13 +24,15 @@ class AddActionDialog : public QDialog
                 * midPointEdit,
                 * endPointEdit,
                 * timeEdit,
-                * newAngleEdit;
+                * newAngleEdit,
+                * jointIndexEdit;
 
     QLabel * startPointLabel,
             * midPointLabel,
             * endPointLabel,
             * timeLabel,
-            * newAngleLabel;
+            * newAngleLabel,
+            * jointIndexLabel;
 
     QPushButton * addButton, * cancelButton;
 
@@ -49,6 +51,7 @@ public:
     void setEnd(QString s);
     void setTime(QString s);
     void setAngle(QString s);
+    void setJoint(QString s);
     void setInfo(QStringList s);
     void setPointListPtr(PointListWidget * ptr)
     {

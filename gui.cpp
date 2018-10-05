@@ -3,7 +3,7 @@
 GUI::GUI(QWidget *parent) :
     QWidget(parent)
 {
-    setWindowState(Qt::WindowMinimized/* | Qt::WindowMaximized*/);
+    setWindowState(Qt::WindowMinimized | Qt::WindowMaximized);
 
     QDesktopWidget * desktop = QApplication::desktop();
 
@@ -19,9 +19,14 @@ GUI::GUI(QWidget *parent) :
     dialog = new QDialog(this);
 
     tabWidget = new QTabWidget;
-    tabWidget->addTab(new MainTab(), "Tab 1");
+    tabWidget->addTab(new MainTab(program), "Tab 1");
     tabWidget->addTab(new TestTab(), "Test");
     tabWidget->addTab(b, "Tab 2");
+
+
+
+    // tu moze wyjebac segmenta
+    program->setPointListPtr(static_cast<MainTab*>(tabWidget->widget(0))->getPointList());
 
     connect(tabWidget->widget(1), SIGNAL(initPressed()), program, SLOT(testRobotInit()));
     connect(tabWidget->widget(1), SIGNAL(startPressed()), program, SLOT(testRun()));

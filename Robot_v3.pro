@@ -31,7 +31,10 @@ SOURCES += \
     addpointdialog.cpp \
     actionlistwidget.cpp \
     addactiondialog.cpp \
-    actiontype.cpp
+    actiontype.cpp \
+    maincontrolwidget.cpp \
+    diode.cpp \
+    fixedgridlayout.cpp
 
 HEADERS += \
     gui.h \
@@ -53,4 +56,7 @@ HEADERS += \
     addpointdialog.h \
     actionlistwidget.h \
     actiontype.h \
-    addactiondialog.h
+    addactiondialog.h \
+    maincontrolwidget.h \
+    diode.h \
+    fixedgridlayout.h

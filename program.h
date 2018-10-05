@@ -9,6 +9,7 @@
 
 #include "serialcommunicator.h"
 #include "actionmanager.h"
+#include "pointlistwidget.h"
 
 //#define PROGRAM_DEBUG
 
@@ -28,6 +29,7 @@ class Program : public QObject
 
     Robot robot;
 
+    PointListWidget * pointList;
 
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -35,7 +37,10 @@ public:
     Program();
     ~Program();
 
-
+    void setPointListPtr(PointListWidget * ptr)
+    {
+        pointList = ptr;
+    }
 
 
 signals:
@@ -45,6 +50,7 @@ public slots:
     void keyPressed(int);
     void testRobotInit();
     void testRun();
+    void addAction(ActionType type, QString info);
 };
 
 #endif // PROGRAM_H

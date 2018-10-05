@@ -7,6 +7,7 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QGridLayout>
+#include <QIntValidator>
 
 class AddPointDialog : public QDialog
 {

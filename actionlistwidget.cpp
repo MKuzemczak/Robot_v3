@@ -30,6 +30,8 @@ ActionListWidget::ActionListWidget(QWidget *parent) : QWidget(parent)
 
     connect(addButton, SIGNAL(clicked()), this, SLOT(openAddDialog()));
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(deleteAction()));
+
+    setMaximumWidth(300);
 }
 
 void ActionListWidget::addAction(ActionType type, QString info)

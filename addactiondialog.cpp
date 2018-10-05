@@ -20,12 +20,14 @@ AddActionDialog::AddActionDialog(QWidget * parent) :
     endPointEdit = new QLineEdit(this);
     timeEdit = new QLineEdit(this);
     newAngleEdit = new QLineEdit(this);
+    jointIndexEdit = new QLineEdit(this);
 
     startPointEdit->setPlaceholderText("np.: P1, p2");
     midPointEdit->setPlaceholderText("np.: P1, p2");
     endPointEdit->setPlaceholderText("np.: P1, p2");
     timeEdit->setPlaceholderText("np.: 1000");
     newAngleEdit->setPlaceholderText("np.: 45");
+    jointIndexEdit->setPlaceholderText("np.: 0, 1 itd.");
 
     QRegExpValidator * v = new QRegExpValidator(QRegExp("[pP][0-9]{1,4}"), this);
 
@@ -34,12 +36,14 @@ AddActionDialog::AddActionDialog(QWidget * parent) :
     endPointEdit->setValidator(v);
     timeEdit->setValidator(new QIntValidator(1, 1000000, this));
     newAngleEdit->setValidator(new QIntValidator(-180, 600, this));
+    jointIndexEdit->setValidator(new QIntValidator(0, 10, this));
 
     startPointLabel = new QLabel("Punkt startowy", this);
     midPointLabel = new QLabel("Punkt pośredni", this);
     endPointLabel = new QLabel("Punkt końcowy", this);
     timeLabel = new QLabel("Czas [ms]", this);
     newAngleLabel = new QLabel("Nowy kąt", this);
+    jointIndexLabel = new QLabel("Przegub", this);
 
     addButton = new QPushButton("Dodaj", this);
     cancelButton = new QPushButton("Anuluj", this);
@@ -55,13 +59,15 @@ AddActionDialog::AddActionDialog(QWidget * parent) :
     grid->addWidget(endPointEdit, 3, 1, 1, 2);
     grid->addWidget(timeEdit, 4, 1, 1, 2);
     grid->addWidget(newAngleEdit, 5, 1, 1, 2);
+    grid->addWidget(jointIndexEdit, 6, 1, 1, 2);
     grid->addWidget(startPointLabel, 1, 0, Qt::AlignRight);
     grid->addWidget(midPointLabel, 2, 0, Qt::AlignRight);
     grid->addWidget(endPointLabel, 3, 0, Qt::AlignRight);
     grid->addWidget(timeLabel, 4, 0, Qt::AlignRight);
     grid->addWidget(newAngleLabel, 5, 0, Qt::AlignRight);
-    grid->addWidget(addButton, 6, 1);
-    grid->addWidget(cancelButton, 6, 2);
+    grid->addWidget(jointIndexLabel, 6, 0, Qt::AlignRight);
+    grid->addWidget(addButton, 7, 1);
+    grid->addWidget(cancelButton, 7, 2);
 
     setLayout(grid);
 
@@ -88,8 +94,9 @@ void AddActionDialog::typeChanged(int index)
     case DELAY:
         enabledEdits.push_back(timeEdit);
         break;
-    case GRIPPER:
     case SINGLE:
+        enabledEdits.push_back(jointIndexEdit);
+    case GRIPPER:
         enabledEdits.push_back(newAngleEdit);
         break;
     }
@@ -106,6 +113,7 @@ void AddActionDialog::enableAll()
     endPointEdit->setDisabled(false);
     timeEdit->setDisabled(false);
     newAngleEdit->setDisabled(false);
+    jointIndexEdit->setDisabled(false);
 }
 
 void AddActionDialog::disableAll()
@@ -115,6 +123,7 @@ void AddActionDialog::disableAll()
     endPointEdit->setDisabled(true);
     timeEdit->setDisabled(true);
     newAngleEdit->setDisabled(true);
+    jointIndexEdit->setDisabled(true);
 }
 
 void AddActionDialog::setType(ActionType type)
@@ -147,12 +156,20 @@ void AddActionDialog::setAngle(QString s)
     newAngleEdit->setText(s);
 }
 
+void AddActionDialog::setJoint(QString s)
+{
+    jointIndexEdit->setText(s);
+}
+
 void AddActionDialog::setInfo(QStringList s)
 {
     if(s.size() != static_cast<int>(enabledEdits.size()))
         qDebug() << "error: AddActionDialog::setInfo(QStringList) : QStringList::size() != Lista::size()";
 
-    enabledEdits[0]->setText(s.at(s.size() - 1));
+    if(typeList->currentIndex() != SINGLE)
+        enabledEdits[0]->setText(s.at(s.size() - 1));
+    else
+        enabledEdits[0]->setText(s.at(0));
 }
 
 void AddActionDialog::addClicked()
