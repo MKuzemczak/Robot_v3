@@ -31,6 +31,8 @@ class Program : public QObject
 
     PointListWidget * pointList;
 
+    Eigen::Vector3d robotBase;
+
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -44,6 +46,7 @@ public:
 
 
 signals:
+    void robotSet(int, int, int);
 
 public slots:
     void print(std::string s);
@@ -51,6 +54,8 @@ public slots:
     void testRobotInit();
     void testRun();
     void addAction(ActionType type, QString info);
+    void startSequence();
+    void stop();
 };
 
 #endif // PROGRAM_H

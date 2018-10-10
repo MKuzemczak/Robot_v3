@@ -100,6 +100,12 @@ void PointListWidget::deletePoint()
 
 void PointListWidget::openAddDialog(int x, int y, int z)
 {
+    if(table->rowCount() > 0)
+    {
+        x = table->item(table->rowCount() - 1, 0)->text().toInt();
+        y = table->item(table->rowCount() - 1, 1)->text().toInt();
+        z = table->item(table->rowCount() - 1, 2)->text().toInt();
+    }
     addDialog->setDefault(x, y, z);
     addDialog->show();
     addDialog->raise();

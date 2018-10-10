@@ -46,6 +46,8 @@ AddPointDialog::AddPointDialog(QWidget * parent) :
     connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
 
     setModal(false);
+
+    xEdit->setFocus();
 }
 
 AddPointDialog::~AddPointDialog()
@@ -56,7 +58,7 @@ AddPointDialog::~AddPointDialog()
 void AddPointDialog::addPressed()
 {
     emit addValues(xEdit->text().toInt(), yEdit->text().toInt(), zEdit->text().toInt());
-
+    xEdit->setFocus();
     accept();
 }
 

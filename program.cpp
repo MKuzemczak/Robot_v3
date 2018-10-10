@@ -112,6 +112,11 @@ void Program::testRobotInit()
 
     manager->setRobotPtr(&robot);
 
+    robotBase = robot.getTCPlocation();
+    emit robotSet(static_cast<int>(robotBase(0)),
+                  static_cast<int>(robotBase(1)),
+                  static_cast<int>(robotBase(2)));
+
 #ifdef PROGRAM_DEBUG
     qDebug() << "Program::testRobotInit() : end";
 
@@ -130,9 +135,7 @@ void Program::testRun()
 
     //manager->clear();
 
-    Eigen::Vector3d v0, v1, robotBase;
-
-    robotBase = robot.getTCPlocation();
+    Eigen::Vector3d v0, v1;
 
     v0 << 200, 50, 0;
     v1 << 150, 50, 0;
@@ -170,6 +173,8 @@ void Program::testRun()
 
 void Program::addAction(ActionType type, QString info)
 {
+    qDebug() << "Program::addAction(..) : type == " << type << ", info == " << info;
+
     if(pointList == nullptr)
     {
         qDebug() << "error: Program::addAction(ActionType, QString) :\n"
@@ -198,6 +203,7 @@ void Program::addAction(ActionType type, QString info)
             break;
         case CONST_STRAIGHT:
             manager->addConstTCPOrientAction(start, end);
+            qDebug() << "adding constTCPaction";
             break;
         }
     }
@@ -227,6 +233,16 @@ void Program::addAction(ActionType type, QString info)
     {
         manager->addGripperAction(s.at(0).toInt());
     }
+}
+
+void Program::startSequence()
+{
+    manager->start();
+}
+
+void Program::stop()
+{
+
 }
 
 Program::~Program()

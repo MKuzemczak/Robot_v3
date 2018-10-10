@@ -15,11 +15,6 @@ MainControlWidget::MainControlWidget(QWidget *parent) : QWidget(parent)
     layout->addWidget(createButtonMovBox(), 3, 0, 1, 5);
     layout->addWidget(createSequenceControlBox(), 4, 0, 1, 5);
 
-    /*for(int i = 0; i < layout->columnCount(); i++)
-    {
-        layout->setColumnStretch(i, 20);
-    }*/
-
     setLayout(layout);
 }
 
@@ -180,11 +175,18 @@ QGroupBox * MainControlWidget::createSequenceControlBox()
 
 void MainControlWidget::emitPointToList()
 {
-    emit addPointToList(xEdit->text().toInt(), zEdit->text().toInt(), yEdit->text().toInt());
+    emit addPointToList(xEdit->text().toInt(), yEdit->text().toInt(), zEdit->text().toInt());
 }
 
 void MainControlWidget::emitSet()
 
 {
     emit set(xEdit->text().toInt(), zEdit->text().toInt(), yEdit->text().toInt());
+}
+
+void MainControlWidget::displayPoint(int x, int y, int z)
+{
+    xEdit->setText(QString("%1").arg(x));
+    yEdit->setText(QString("%1").arg(y));
+    zEdit->setText(QString("%1").arg(z));
 }

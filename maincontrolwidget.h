@@ -73,6 +73,7 @@ signals:
 public slots:
     void emitSet();
     void emitPointToList();
+    void displayPoint(int x, int y, int z);
 
 };
 
