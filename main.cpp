@@ -18,6 +18,12 @@ int main(int argc, char **argv)
     QApplication app (argc, argv);
     GUI gui;
 
+    /*QFile File("QTDark.stylesheet");
+    File.open(QFile::ReadOnly);
+    QString StyleSheet = QLatin1String(File.readAll());
+
+    app.setStyleSheet(StyleSheet);*/
+
     gui.show();
 
 

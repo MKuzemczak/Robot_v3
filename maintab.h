@@ -12,6 +12,7 @@
 #include "actionlistwidget.h"
 #include "maincontrolwidget.h"
 #include "program.h"
+#include "terminal.h"
 
 class MainTab : public QWidget
 {
@@ -25,6 +26,14 @@ class MainTab : public QWidget
     PointListWidget * pointList;
     ActionListWidget * actionList;
     MainControlWidget * mainControl;
+
+    Terminal * terminal;
+
+    QPushButton * showTerminalButton;
+
+    QSplitter * splitter,
+              * splitter0,
+              * splitter1;
 
 
 public:
@@ -40,6 +49,9 @@ public:
 signals:
 
 public slots:
+    void terminalTest();
+    void resizeTerminal();
+
 };
 
 #endif // MAINTAB_H

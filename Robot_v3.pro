@@ -34,7 +34,8 @@ SOURCES += \
     actiontype.cpp \
     maincontrolwidget.cpp \
     diode.cpp \
-    fixedgridlayout.cpp
+    fixedgridlayout.cpp \
+    terminal.cpp
 
 HEADERS += \
     gui.h \
@@ -59,4 +60,5 @@ HEADERS += \
     addactiondialog.h \
     maincontrolwidget.h \
     diode.h \
-    fixedgridlayout.h
+    fixedgridlayout.h \
+    terminal.h
