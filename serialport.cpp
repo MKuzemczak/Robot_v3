@@ -1,116 +1,23 @@
 #include "serialport.h"
 
-SerialPort::SerialPort(std::string portName, int baud)
+SerialPort::SerialPort(std::string n, int b)
 {
     this->connected = false;
+    portName = n;
+    baud = b;
 
-    this->handler = CreateFileA(static_cast<LPCSTR>(portName.c_str()),
-                                GENERIC_READ | GENERIC_WRITE,
-                                0,
-                                nullptr,
-                                OPEN_EXISTING,
-                                FILE_ATTRIBUTE_NORMAL,
-                                nullptr);
-    if (this->handler == INVALID_HANDLE_VALUE){
-        if (GetLastError() == ERROR_FILE_NOT_FOUND){
-            printf("ERROR: Handle was not attached. Reason: %s not available\n", portName.c_str());
-        }
-    else
-        {
-            printf("ERROR!!!");
-        }
-    }
-    else {
-        DCB dcbSerialParameters = {};
+    init();
 
-        if (!GetCommState(this->handler, &dcbSerialParameters)) {
-            printf("failed to get current serial parameters");
-        }
-        else
-        {
-            switch(baud)
-            {
-            case 9600:
-                dcbSerialParameters.BaudRate = CBR_115200;
-                break;
-            case 115200:
-                dcbSerialParameters.BaudRate = CBR_115200;
-                break;
-            }
-            dcbSerialParameters.ByteSize = 8;
-            dcbSerialParameters.StopBits = ONESTOPBIT;
-            dcbSerialParameters.Parity = NOPARITY;
-            dcbSerialParameters.fDtrControl = DTR_CONTROL_ENABLE;
-
-            if (!SetCommState(handler, &dcbSerialParameters))
-            {
-                printf("ALERT: could not set Serial port parameters\n");
-            }
-            else
-            {
-                this->connected = true;
-                PurgeComm(this->handler, PURGE_RXCLEAR | PURGE_TXCLEAR);
-                Sleep(ARDUINO_WAIT_TIME);
-            }
-        }
-    }
 }
 
-SerialPort::SerialPort(std::string portName, int baud, QObject * parent) :
+SerialPort::SerialPort(std::string n, int b, QObject * parent) :
     QObject(parent)
 {
     this->connected = false;
+    portName = n;
+    baud = b;
 
-    this->handler = CreateFileA(static_cast<LPCSTR>(portName.c_str()),
-                                GENERIC_READ | GENERIC_WRITE,
-                                0,
-                                nullptr,
-                                OPEN_EXISTING,
-                                FILE_ATTRIBUTE_NORMAL,
-                                nullptr);
-    if (this->handler == INVALID_HANDLE_VALUE){
-        if (GetLastError() == ERROR_FILE_NOT_FOUND){
-            printf("ERROR: Handle was not attached. Reason: %s not available\n", portName.c_str());
-        }
-    else
-        {
-            printf("ERROR!!!");
-        }
-    }
-    else {
-        DCB dcbSerialParameters = {};
-
-        if (!GetCommState(this->handler, &dcbSerialParameters)) {
-            printf("failed to get current serial parameters");
-        }
-        else
-        {
-            switch(baud)
-            {
-            case 9600:
-                dcbSerialParameters.BaudRate = CBR_115200;
-                break;
-            case 115200:
-                dcbSerialParameters.BaudRate = CBR_115200;
-                break;
-            }
-            dcbSerialParameters.ByteSize = 8;
-            dcbSerialParameters.StopBits = ONESTOPBIT;
-            dcbSerialParameters.Parity = NOPARITY;
-            dcbSerialParameters.fDtrControl = DTR_CONTROL_ENABLE;
-
-            if (!SetCommState(handler, &dcbSerialParameters))
-            {
-                printf("ALERT: could not set Serial port parameters\n");
-            }
-            else
-            {
-                this->connected = true;
-                PurgeComm(this->handler, PURGE_RXCLEAR | PURGE_TXCLEAR);
-                Sleep(ARDUINO_WAIT_TIME);
-            }
-        }
-    }
+    init();
 }
 
 SerialPort::~SerialPort()
@@ -155,7 +62,19 @@ bool SerialPort::writeSerialPort(const char *buffer, unsigned int buf_size)
 
 bool SerialPort::isConnected()
 {
-    return this->connected;
+    LPDWORD errors = new DWORD;
+    LPCOMSTAT comstat = new COMSTAT;
+
+    if(ClearCommError(handler, errors, comstat) == 0)
+    {
+        connected = false;
+    }
+    else
+    {
+        connected = true;
+    }
+
+    return connected;
 }
 
 bool SerialPort::isDataToRead()
@@ -237,4 +156,70 @@ SerialPort & SerialPort::operator << (const char s)
     writeSerialPort(&s, 1);
 
     return *this;
+}
+
+SerialPort & SerialPort::operator << (QString s)
+{
+    writeSerialPort(s.toStdString().c_str(), static_cast<unsigned int>(s.size()));
+
+    return *this;
+}
+
+bool SerialPort::init()
+{
+    this->handler = CreateFileA(static_cast<LPCSTR>(portName.c_str()),
+                                GENERIC_READ | GENERIC_WRITE,
+                                0,
+                                nullptr,
+                                OPEN_EXISTING,
+                                FILE_ATTRIBUTE_NORMAL,
+                                nullptr);
+    if (this->handler == INVALID_HANDLE_VALUE){
+        if (GetLastError() == ERROR_FILE_NOT_FOUND){
+            qDebug("ERROR: Handle was not attached. Reason: %s not available", portName.c_str());
+            connected = false;
+            return false;
+        }
+    else
+        {
+            qDebug("ERROR!!!");
+            connected = false;
+            return false;
+        }
+    }
+
+    DCB dcbSerialParameters = {};
+
+    if (!GetCommState(this->handler, &dcbSerialParameters)) {
+        qDebug("failed to get current serial parameters");
+        connected = false;
+        return false;
+    }
+
+    switch(baud)
+    {
+    case 9600:
+        dcbSerialParameters.BaudRate = CBR_9600;
+        break;
+    case 115200:
+        dcbSerialParameters.BaudRate = CBR_115200;
+        break;
+    }
+    dcbSerialParameters.ByteSize = 8;
+    dcbSerialParameters.StopBits = ONESTOPBIT;
+    dcbSerialParameters.Parity = NOPARITY;
+    dcbSerialParameters.fDtrControl = DTR_CONTROL_ENABLE;
+
+    if (!SetCommState(handler, &dcbSerialParameters))
+    {
+        qDebug("ALERT: could not set Serial port parameters\n");
+        connected = false;
+        return false;
+    }
+
+    this->connected = true;
+    PurgeComm(this->handler, PURGE_RXCLEAR | PURGE_TXCLEAR);
+    Sleep(ARDUINO_WAIT_TIME);
+
+    return true;
 }

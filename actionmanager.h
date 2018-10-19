@@ -39,70 +39,29 @@ public:
 
 
 
-    int size()
-    {
-        return static_cast<int>(actions.size());
-    }
+    int size();
 
     void addStraightLineMovAction(Eigen::Vector3d & start,
-                                  Eigen::Vector3d & dest)
-    {
-        actions.push_back(new StraightLineMovAction(start, dest, arduinoPort, flags));
-        actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
-    }
+                                  Eigen::Vector3d & dest);
 
-    void addFreeMovAction(Eigen::Vector3d & dest)
-    {
-        actions.push_back(new FreeMovAction(dest, arduinoPort, flags));
-        actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
-    }
+    void addFreeMovAction(Eigen::Vector3d & dest);
 
     void addArchMovAction(Eigen::Vector3d start,
                           Eigen::Vector3d inter,
-                          Eigen::Vector3d dest)
-    {
-        actions.push_back(new ArchMovAction(start, inter, dest, arduinoPort, flags));
-        actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
-    }
+                          Eigen::Vector3d dest);
 
     void addConstTCPOrientAction(Eigen::Vector3d & start,
-                                 Eigen::Vector3d & dest)
-    {
-        actions.push_back(new ConstTCPOrientAction(start, dest, arduinoPort, flags));
-        actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
+                                 Eigen::Vector3d & dest);
 
-#ifdef DEBUG_ACTION_MANAGER
-        qDebug() << "ActionManager::addConstTCPOrientAction() : added thread: "
-                 << actions[static_cast<int>(actions.size()) - 1]->thread();
-#endif
-    }
+    void addSetSingleJointAction(int joint, int thetaDeg);
 
-    void addSetSingleJointAction(int joint, int thetaDeg)
-    {
-        actions.push_back(new SetSingleJointAction(joint, thetaDeg, arduinoPort, flags));
-        actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
-    }
+    void addGripperAction(int set);
 
-    void addGripperAction(int set)
-    {
-        actions.push_back(new GripperAction(set, arduinoPort, flags));
-        actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
-    }
+    bool isCheckCalculations();
 
-    bool isCheckCalculations()
-    {
-        return checkCalculations;
-    }
+    void setRobotPtr(Robot * ptr);
 
-    void setRobotPtr(Robot * ptr)
-    {
-        robotPtr = ptr;
-    }
-
-    bool isStarted()
-    {
-        return started;
-    }
+    bool isStarted();
 
     void setFlagsPtr(Flags * ptr);
     void setArduinoPortPtr(SerialPort * ptr);
@@ -126,8 +85,16 @@ public slots:
     void nextStep();
     void stop();
     bool start();
+    void deleteAction(int);
 
 signals:
     void startActionCalculations(Robot *);
+    void writeToTerminal(QString);
+    void writeToTerminal(int);
+    void writeToTerminal(double);
+    void writeToTerminal(char const *);
+    void writeToTerminal(char);
+    void writeToTerminal(std::string);
+
 };
 

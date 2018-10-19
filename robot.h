@@ -6,12 +6,16 @@
 #include "lista.h"
 #include "joint.h"
 
-//#define DEBUG_ROBOT
-//#define DEBUG_ROBOT1
+#define DEBUG_ROBOT
+#define DEBUG_ROBOT1
 
 #include <QThread>
 
 #include "timer.h"
+
+
+#define RET_SUCCESS 0
+#define RET_JOINT_LIMIT_OFFSET 10
 
 class Robot
 {
@@ -28,8 +32,8 @@ class Robot
 
     Lista<Joint*, Eigen::aligned_allocator<Joint*>> joints;
 
+    QString basePos;
 
-    // aktualne rozwarcie chwytaka
 
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -60,6 +64,8 @@ public:
 
     void setThetaDeg(int joint, double theta);
     void setThetaRad(int joint, double theta);
+    void setJointBaseThetaDeg(int joint, double theta);
+    void setJointBaseThetaRad(int joint, double theta);
 
     void setTCPaLength(double l);
 
@@ -85,6 +91,7 @@ public:
     int getJointConstructionMax(int joint);
 
     int getJointServoAmount(int joint);
+    int getServoAmount();
 
     int getRegJointsAmount();
     int getLocJointsAmount();
@@ -94,6 +101,9 @@ public:
 
     void setGripper(int set);
     int getGripper();
+
+    QString getBasePos();
+    void setBasePos(QString);
     /////////////////////////////////////////////////////////////// !setter & getters & adders
 
 };

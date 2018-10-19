@@ -33,12 +33,16 @@ public:
         pointList = ptr;
     }
 
+    void deleteAction();
+
 signals:
     void actionAdded(ActionType type, QString info);
+    void actionDeleted(int);
 public slots:
     void addAction(ActionType type, QString info);
     void openAddDialog();
-    void deleteAction();
+    void deleteAction(int i);
+    void deleteCurrentAction();
 };
 
 #endif // ACTIONLISTWIDGET_H

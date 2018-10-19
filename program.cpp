@@ -22,14 +22,33 @@ Program::Program()
         *arduinoPort << "A";
 
         QThread::msleep(3000);
+
+        emit portConnected();
     }
 
     std::cout << "Program::Program() : koniec" << std::endl;
 
+    joystick = new Joystick(&robot, flags, arduinoPort, this);
+
     connect(flags, SIGNAL(movFinReceived()), manager, SLOT(nextStep()));
+    connect(com, SIGNAL(portDisconnected()), this, SIGNAL(portDisconnected()));
+    connect(com, SIGNAL(portConnected()), this, SIGNAL(portConnected()));
+
+    connect(manager, SIGNAL(writeToTerminal(QString)), this, SIGNAL(writeToTerminal(QString)));
+    connect(manager, SIGNAL(writeToTerminal(int)), this, SIGNAL(writeToTerminal(int)));
+    connect(manager, SIGNAL(writeToTerminal(double)), this, SIGNAL(writeToTerminal(double)));
+    connect(manager, SIGNAL(writeToTerminal(char)), this, SIGNAL(writeToTerminal(char)));
+    connect(manager, SIGNAL(writeToTerminal(char const *)), this, SIGNAL(writeToTerminal(char const *)));
+    connect(manager, SIGNAL(writeToTerminal(std::string)), this, SIGNAL(writeToTerminal(std::string)));
+
+    connect(com, SIGNAL(writeToTerminal(QString)), this, SIGNAL(writeToTerminal(QString)));
+    connect(com, SIGNAL(writeToTerminal(int)), this, SIGNAL(writeToTerminal(int)));
+    connect(com, SIGNAL(writeToTerminal(double)), this, SIGNAL(writeToTerminal(double)));
+    connect(com, SIGNAL(writeToTerminal(char)), this, SIGNAL(writeToTerminal(char)));
+    connect(com, SIGNAL(writeToTerminal(char const *)), this, SIGNAL(writeToTerminal(char const *)));
+    connect(com, SIGNAL(writeToTerminal(std::string)), this, SIGNAL(writeToTerminal(std::string)));
 
     pointList = nullptr;
-
 }
 
 
@@ -40,33 +59,8 @@ void Program::print(std::string s)
 }
 
 
-void Program::keyPressed(int key)
+void Program::keyPressed(int)
 {
-    if(key == Qt::Key_W)
-    {
-        qDebug() << "W pressed";
-
-        *arduinoPort << "B200\n382\n347\n355\n364\n300\nC";
-
-        if(flags->isSet(ARDUINO_MOV_FIN))
-            qDebug() << "Mov fin";
-    }
-
-    if(key == Qt::Key_S)
-    {
-        qDebug() << "S pressed";
-        char buf[MAX_DATA_LENGTH];
-
-        if(arduinoPort->readSerialPort(buf, MAX_DATA_LENGTH) != 0)
-        {
-            qDebug() << "hehe";
-            qDebug() << buf;
-        }
-
-        qDebug() << "Threads:\nMain: " << QApplication::instance()->thread()
-                 << "\nProgram: " << this->thread()
-                 << "\nmanager: " << manager->thread();
-    }
 }
 
 void Program::testRobotInit()
@@ -75,40 +69,9 @@ void Program::testRobotInit()
     qDebug() << "Program::testRObotInit() : start";
 #endif
 
-    //robot = Robot();
-
-    robot.addRegJoint(-90, 0, 0);
-    robot.addRegJoint(90, 0, 0);
-    robot.addRegJoint(0, 150, 0);
-    robot.addLocJoint(90, 0, 0);
-    robot.addLocJoint(-90, 0, 93);
-    robot.setTCPaLength(90);
-
-    robot.setThetaDeg(1, 90);
-    robot.setThetaDeg(4, -90);
-
-    robot.addJointServoMinMax(0, 555, 150);
-    robot.addJointServoMinMax(1, 178, 593);
-    robot.addJointServoMinMax(1, 545, 154);
-    robot.addJointServoMinMax(2, 560, 160);
-    robot.addJointServoMinMax(3, 570, 165);
-    robot.addJointServoMinMax(4, 140, 590);
-
-    robot.setJointConstructionMinMax(0, -90, 90);
-    robot.setJointConstructionMinMax(1, 20, 150);
-    robot.setJointConstructionMinMax(2, -45, 45);
-    robot.setJointConstructionMinMax(3, -90, 90);
-    robot.setJointConstructionMinMax(4, -180, 0);
-
-    robot.setJointConversionMinMax(0, -90, 90);
-    robot.setJointConversionMinMax(1, 0, 180);
-    robot.setJointConversionMinMax(2, -90, 90);
-    robot.setJointConversionMinMax(3, -90, 90);
-    robot.setJointConversionMinMax(4, -180, 0);
+    *arduinoPort << robot.getBasePos();
 
     robot.setTCPOrient(robot.getJointLocation(robot.getDOF() - 1) - robot.getTCPlocation());
-
-    *arduinoPort << "B350\n382\n347\n355\n364\n362\n500\nC";
 
     manager->setRobotPtr(&robot);
 
@@ -116,6 +79,8 @@ void Program::testRobotInit()
     emit robotSet(static_cast<int>(robotBase(0)),
                   static_cast<int>(robotBase(1)),
                   static_cast<int>(robotBase(2)));
+
+    emit writeToTerminal("testowa inicjalizacja zmiennej robot");
 
 #ifdef PROGRAM_DEBUG
     qDebug() << "Program::testRobotInit() : end";
@@ -173,12 +138,11 @@ void Program::testRun()
 
 void Program::addAction(ActionType type, QString info)
 {
-    qDebug() << "Program::addAction(..) : type == " << type << ", info == " << info;
-
     if(pointList == nullptr)
     {
-        qDebug() << "error: Program::addAction(ActionType, QString) :\n"
-                    "nullptr wskaźnik na listę punktów";
+        emit writeToTerminal("error: Program::addAction(ActionType, QString) :\n"
+                     "nullptr wskaźnik na listę punktów");
+
         return;
     }
 
@@ -203,8 +167,9 @@ void Program::addAction(ActionType type, QString info)
             break;
         case CONST_STRAIGHT:
             manager->addConstTCPOrientAction(start, end);
-            qDebug() << "adding constTCPaction";
             break;
+        default:
+            ;
         }
     }
     else if (type == ARCH)
@@ -227,6 +192,8 @@ void Program::addAction(ActionType type, QString info)
         int joint = s.at(0).toInt(),
                 angle = s.at(1).toInt();
 
+        qDebug() << "Angle: " << angle;
+
         manager->addSetSingleJointAction(joint, angle);
     }
     else if (type == GRIPPER)
@@ -237,16 +204,172 @@ void Program::addAction(ActionType type, QString info)
 
 void Program::startSequence()
 {
+    flags->reset(STOP);
     manager->start();
+    emit writeToTerminal("Program - start sekwencji");
+    emit started();
 }
 
 void Program::stop()
 {
+    flags->set(STOP);
+    emit writeToTerminal("Program - stop");
+    emit stopped();
+}
 
+bool Program::isSerialConnected()
+{
+    return arduinoPort->isConnected();
+}
+
+void Program::scanConfig()
+{
+    QFile data("robotConfig.dat");
+
+    if(data.open(QFile::ReadOnly))
+    {
+        QTextStream strm(&data);
+
+        QStringList slist0, slist1;
+
+        QString line;
+
+        while(!strm.atEnd())
+        {
+            line = strm.readLine();
+
+            slist0 = line.split(",");
+
+            for(int i = 1; i < slist0.size(); i++)
+            {
+                slist1 = slist0[i].split(" ");
+
+                if(slist0[0] == "jr")
+                {
+                    if(slist1.size() != 3)
+                    {
+                        emit writeToTerminal(QString("Błąd odczytu config przegubów regionalnych: %1").arg(i));
+                    }
+                    else
+                    {
+                        qDebug() << "dodawanko reg";
+                        robot.addRegJoint(slist1[0].toDouble(),
+                                slist1[1].toDouble(),
+                                slist1[2].toDouble());
+                    }
+                }
+                else if (slist0[0] == "jl")
+                {
+                    if(slist1.size() != 3)
+                    {
+                        emit writeToTerminal(QString("Błąd odczytu config przegubów lokalnych: %1").arg(i));
+                    }
+                    else
+                    {
+                        qDebug() << "dodawanko loc";
+                        robot.addLocJoint(slist1[0].toDouble(),
+                                slist1[1].toDouble(),
+                                slist1[2].toDouble());
+                    }
+
+                }
+                else if (slist0[0] == "TCP")
+                {
+                    robot.setTCPaLength(slist0[1].toDouble());
+                }
+                else if (slist0[0] == "TH")
+                {
+                    if(slist1.size() != 2)
+                    {
+                        emit writeToTerminal(QString("Błąd odczytu config kątów Theta: %1").arg(i));
+                    }
+                    else
+                    {
+                        robot.setThetaDeg(slist1[0].toInt(),
+                                slist1[1].toDouble());
+
+                        robot.setJointBaseThetaDeg(slist1[0].toInt(),
+                                slist1[1].toDouble());
+                    }
+                }
+                else if (slist0[0] == "servo")
+                {
+                    if(slist1.size() != 3)
+                    {
+                        emit writeToTerminal(QString("Błąd odczytu config serwomechanizmów: %1").arg(i));
+                    }
+                    else
+                    {
+                        qDebug() << "servo addeded";
+                        robot.addJointServoMinMax(slist1[0].toInt(),
+                                slist1[1].toInt(),
+                                slist1[2].toInt());
+                    }
+
+                }
+                else if (slist0[0] == "constr")
+                {
+                    if(slist1.size() != 3)
+                    {
+                        emit writeToTerminal(QString("Błąd odczytu config kątów konstrukcyjnych: %1").arg(i));
+                    }
+                    else
+                    {
+                        robot.setJointConstructionMinMax(slist1[0].toInt(),
+                                slist1[1].toInt(),
+                                slist1[2].toInt());
+                    }
+                }
+                else if (slist0[0] == "conv")
+                {
+                    if(slist1.size() != 3)
+                    {
+                        emit writeToTerminal(QString("Błąd odczytu config kątów konwersji: %1").arg(i));
+                    }
+                    else
+                    {
+                        robot.setJointConversionMinMax(slist1[0].toInt(),
+                                slist1[1].toInt(),
+                                slist1[2].toInt());
+                    }
+                }
+
+            }
+
+            if (slist0[0] == "BASE")
+            {
+                QString s;
+                if(slist0.size() != robot.getServoAmount() + 2)
+                {
+                    qDebug() << "Błąd odczytu config ustawienia startowego robota: " << slist0.size() << robot.getServoAmount();
+                    emit writeToTerminal("Błąd odczytu config ustawienia startowego robota");
+                }
+                else
+                {
+                    for(int i = 1; i < slist0.size(); i++)
+                    {
+                        s += slist0[i];
+                        if(i < slist0.size() - 1)
+                            s += '\n';
+                    }
+
+                    robot.setBasePos(s);
+                }
+
+            }
+        }
+    }
+}
+
+void Program::deleteAction(int i)
+{
+    manager->deleteAction(i);
 }
 
 Program::~Program()
 {
+
+
     com->quit();
     com->wait();
 }

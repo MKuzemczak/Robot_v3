@@ -29,13 +29,24 @@ ActionListWidget::ActionListWidget(QWidget *parent) : QWidget(parent)
     addDialog = nullptr;
 
     connect(addButton, SIGNAL(clicked()), this, SLOT(openAddDialog()));
-    connect(deleteButton, SIGNAL(clicked()), this, SLOT(deleteAction()));
+    connect(deleteButton, SIGNAL(clicked()), this, SLOT(deleteCurrentAction()));
 
     setMaximumWidth(300);
 }
 
 void ActionListWidget::addAction(ActionType type, QString info)
 {
+    QStringList slist = info.split(",");
+
+    for(int i = 0; i < slist.size(); i++)
+    {
+        if(slist[i][0] == "P" && !pointList->containsName(slist[i]))
+        {
+            qDebug() << "error: ActionListWidget::addAction() : punkt " << slist[i] << " nie istnieje";
+            return;
+        }
+    }
+
     emit actionAdded(type, info);
 
     int rowCount = table->rowCount();
@@ -60,6 +71,8 @@ void ActionListWidget::addAction(ActionType type, QString info)
 
 void ActionListWidget::deleteAction()
 {
+    emit actionDeleted(table->currentRow());
+
     if(table->currentRow() >= 0)
     {
         table->removeRow(table->currentRow());
@@ -89,4 +102,26 @@ void ActionListWidget::openAddDialog()
 QStringList ActionListWidget::getInfo(QString s)
 {
     return s.split(",");
+}
+
+void ActionListWidget::deleteAction(int i)
+{
+    emit actionDeleted(i);
+
+    if(table->currentRow() >= 0)
+    {
+        table->removeRow(i);
+    }
+}
+
+void ActionListWidget::deleteCurrentAction()
+{
+    int i = table->currentRow();
+
+    emit actionDeleted(i);
+
+    if(table->currentRow() >= 0)
+    {
+        table->removeRow(i);
+    }
 }

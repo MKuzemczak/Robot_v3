@@ -181,11 +181,11 @@ void AddActionDialog::addClicked()
         QString txt = enabledEdits[i]->text();
         txt = txt.toUpper();
 
-        if(txt.at(0) == "P" && !pointList->containsName(txt))
+        /*if(txt.at(0) == "P" && !pointList->containsName(txt))
         {
             qDebug() << "error: AddActionDialog::addClicked() : punkt " << txt << " nie istnieje";
             return;
-        }
+        }*/
 
         info += enabledEdits[i]->text();
 

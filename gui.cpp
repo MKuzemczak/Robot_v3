@@ -35,6 +35,9 @@ GUI::GUI(QWidget *parent) :
     QVBoxLayout * layout = new QVBoxLayout;
     layout->addWidget(tabWidget);
     this->setLayout(layout);
+
+    program->scanConfig();
+    static_cast<MainTab*>(tabWidget->widget(0))->scanConfig();
 }
 
 

@@ -45,6 +45,7 @@ public:
     }
 
     PointListWidget * getPointList();
+    void scanConfig();
 
 signals:
 

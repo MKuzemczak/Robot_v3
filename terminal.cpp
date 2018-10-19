@@ -15,14 +15,6 @@ Terminal::Terminal(QWidget * parent) :
     label = new QLabel("Komunikaty aplikacji", this);
     label->setMaximumSize(150, 40);
 
-    /*QHBoxLayout * hbox = new QHBoxLayout;
-    hbox->addWidget(label, Qt::AlignLeft);
-    hbox->addWidget(clearButton, Qt::AlignLeft);
-
-    QVBoxLayout * layout = new QVBoxLayout;
-    layout->addItem(hbox);
-    layout->addWidget(textEdit);*/
-
     QWidget * fillWidget = new QWidget;
     fillWidget->setMaximumHeight(40);
 
@@ -37,8 +29,9 @@ Terminal::Terminal(QWidget * parent) :
     connect(clearButton, SIGNAL(clicked()), this, SLOT(clear()));
     connect(hideButton, SIGNAL(clicked()), this, SLOT(hiding()));
 
-
     setLayout(l);
+
+    textEdit->setFont (QFont ("Consolas", 9));
 }
 
 QPlainTextEdit * Terminal::getTextEdit()
@@ -54,6 +47,8 @@ void Terminal::hiding()
         textEdit->hide();
         hideButton->setText("Pokaż");
         setMaximumHeight(40);
+        static_cast<QGridLayout*>(layout())->setColumnStretch(1, 1);
+        static_cast<QGridLayout*>(layout())->setColumnStretch(3, 500);
         emit hidden();
     }
     else
@@ -82,7 +77,7 @@ Terminal & operator << (Terminal & t, QString s)
     return t;
 }
 
-Terminal & operator << (Terminal & t, char * s)
+Terminal & operator << (Terminal & t, char const * s)
 {
     t.getTextEdit()->appendPlainText(QString(s));
 
@@ -94,4 +89,55 @@ Terminal & operator << (Terminal & t, char s)
     t.getTextEdit()->appendPlainText(QString(&s));
 
     return t;
+}
+
+Terminal & operator << (Terminal & t, double s)
+{
+    t.getTextEdit()->appendPlainText(QString("%1").arg(s));
+
+    return t;
+}
+
+Terminal & operator << (Terminal & t, int s)
+{
+    t.getTextEdit()->appendPlainText(QString("%1").arg(s));
+
+    return t;
+}
+
+Terminal & operator << (Terminal & t, std::string s)
+{
+    t.getTextEdit()->appendPlainText(QString(s.c_str()));
+
+    return t;
+}
+
+void Terminal::write(QString s)
+{
+    *this << s;
+}
+
+void Terminal::write(int i)
+{
+    *this << i;
+}
+
+void Terminal::write(double d)
+{
+    *this << d;
+}
+
+void Terminal::write(char const * s)
+{
+    *this << s;
+}
+
+void Terminal::write(char c)
+{
+    *this << c;
+}
+
+void Terminal::write(std::string s)
+{
+    *this << s;
 }

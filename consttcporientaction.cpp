@@ -1,6 +1,6 @@
 #include "baseaction.h"
 
-//#define DEBUG_CONSTTCP
+#define DEBUG_CONSTTCP
 
 ConstTCPOrientAction::ConstTCPOrientAction(Eigen::Vector3d start,
                                            Eigen::Vector3d dest,
@@ -30,7 +30,9 @@ bool ConstTCPOrientAction::calculate(Robot & robot)
 
     lerp(path);
 
-
+#ifdef DEBUG_CONSTTCP
+    qDebug() << "ConstTCPOrientAction::calculate(Robot&) : po lerp";
+#endif
 
     for (int i = 0; i < static_cast<int>(path.size()); i++)
     {
@@ -40,6 +42,7 @@ bool ConstTCPOrientAction::calculate(Robot & robot)
 
         if(!robot.set(0, robot.getRegJointsAmount() - 1, robot.getDOF() - 1, jointLoc))
         {
+            flags()->set(STOP);
             emit calculationsFailed();
             moveToThread(getParentThreadPtr());
             return false;
@@ -47,6 +50,7 @@ bool ConstTCPOrientAction::calculate(Robot & robot)
 
         if(!robot.set(robot.getRegJointsAmount(), robot.getDOF() - 1, robot.getDOF(), path[i]))
         {
+            flags()->set(STOP);
             emit calculationsFailed();
             moveToThread(getParentThreadPtr());
             return false;
@@ -67,38 +71,50 @@ bool ConstTCPOrientAction::calculate(Robot & robot)
     setCalculated();
     resetDone();
     emit calculationsFinished();
-    moveToThread(getParentThreadPtr());
+    if(getParentThreadPtr() != nullptr)
+        moveToThread(getParentThreadPtr());
 
     return true;
 }
 
 void ConstTCPOrientAction::execute()
 {
-    std::string s;
+#ifdef DEBUG_CONSTTCP
+    qDebug() << "ConstTCPOrientAction::execute() : start";
+#endif
 
-
-    s = "B";
-
-    for (int j = 0; j < static_cast<int>(pathInServoDegs[0].size()); j++)
+    if(pathInServoDegs.size() != 0)
     {
-        s += std::to_string(pathInServoDegs[0][j]) + "\n";
+        std::string s;
 
 
-    }
+        s = "B";
 
-    s += 'C';
+        for (int j = 0; j < static_cast<int>(pathInServoDegs[0].size()); j++)
+        {
+            s += std::to_string(pathInServoDegs[0][j]) + "\n";
 
-    while (!flags()->isSet(ARDUINO_MOV_FIN)) ;
 
-    *arduinoPort() << s;
+        }
+
+        s += 'C';
 
 #ifdef DEBUG_CONSTTCP
-    qDebug() << s.c_str();
+        qDebug() << "ConstTCPOrientAction::execute() : po petli";
+#endif
+
+        while (!flags()->isSet(ARDUINO_MOV_FIN)) ;
+
+        *arduinoPort() << s;
+
+#ifdef DEBUG_CONSTTCP
+        qDebug() << s.c_str();
 #endif
 
 
-    flags()->reset(ARDUINO_MOV_FIN);
-    pathInServoDegs.erase(0);
+        flags()->reset(ARDUINO_MOV_FIN);
+        pathInServoDegs.erase(0);
+    }
 
     if (pathInServoDegs.size() == 0)
     {

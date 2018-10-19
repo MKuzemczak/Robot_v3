@@ -36,15 +36,16 @@ bool ActionManager::start()
 {
     if (actions.size() == 0)
     {
-        qDebug("Error: ActionManager::start() : actions.size() == 0\n");
+        emit writeToTerminal("Error: ActionManager::start() : actions.size() == 0\n");
         return false;
     }
     if (robotPtr == nullptr)
     {
-        qDebug("Error: ActionManager::start() : robotPtr == NULL\n");
+        emit writeToTerminal("Error: ActionManager::start() : robotPtr == NULL\n");
         return false;
     }
 
+    actionCntr = 0;
     actions[0]->calculate(*robotPtr);
     started = true;
     checkCalculations = true;
@@ -81,7 +82,7 @@ void ActionManager::nextStep()
 #endif // DEBUG_ACTION_MANAGER
 
 
-        if(!actions[actionCntr]->isDone())
+        if(!actions[actionCntr]->isDone() && actions[actionCntr]->isCalculated())
         {
 #ifdef DEBUG_ACTION_MANAGER
             qDebug("ActionManager::nextStep() : before actions[actionCntr]->execute();\n"
@@ -182,6 +183,7 @@ void ActionManager::calculations()
 
                 calculationThread.start();
 
+                if(!flags->isSet(STOP))
                 emit startActionCalculations(robotPtr);
 
 #ifdef DEBUG_ACTION_MANAGER
@@ -213,10 +215,11 @@ void ActionManager::stopCalculationThreadFailed()
 {
     calculationThread.quit();
 
-    qDebug() << "error: calculations failed in action "
-             << ((actionCntr < static_cast<int>(actions.size()) - 1) ? (actionCntr + 1) : 0);
+    qDebug() << "error: calculations failed in action: ";
+    emit writeToTerminal("error: calculations failed in action: ");
+    emit writeToTerminal(((actionCntr < static_cast<int>(actions.size()) - 1) ? (actionCntr + 1) : 0));
 
-    flags->set(STOP);
+
     started = false;
 
     disconnect(currentlyCalculated, SIGNAL(calculationsFinished()), nullptr, nullptr);
@@ -226,7 +229,84 @@ void ActionManager::stopCalculationThreadFailed()
     calculationsRunning = false;
 }
 
+void ActionManager::deleteAction(int i)
+{
+    actions.erase(i);
+}
+
 ////////////////////////////////////////////////////////// setters & getters & adders
+
+
+int ActionManager::size()
+{
+    return static_cast<int>(actions.size());
+}
+
+void ActionManager::addStraightLineMovAction(Eigen::Vector3d & start,
+                              Eigen::Vector3d & dest)
+{
+    actions.push_back(new StraightLineMovAction(start, dest, arduinoPort, flags));
+    actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
+    emit writeToTerminal("akcja ruchu po linii prostej dodana");
+}
+
+void ActionManager::addFreeMovAction(Eigen::Vector3d & dest)
+{
+    actions.push_back(new FreeMovAction(dest, arduinoPort, flags));
+    actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
+    emit writeToTerminal("Akcja ruchu wolnego dodana");
+
+}
+
+void ActionManager::addArchMovAction(Eigen::Vector3d start,
+                      Eigen::Vector3d inter,
+                      Eigen::Vector3d dest)
+{
+    actions.push_back(new ArchMovAction(start, inter, dest, arduinoPort, flags));
+    actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
+    emit writeToTerminal("Akcja ruchu po łuku dodana");
+}
+
+void ActionManager::addConstTCPOrientAction(Eigen::Vector3d & start,
+                             Eigen::Vector3d & dest)
+{
+    actions.push_back(new ConstTCPOrientAction(start, dest, arduinoPort, flags));
+    actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
+    emit writeToTerminal("Akcja ruchu ze stałą orientacją ostatniego członu dodana");
+#ifdef DEBUG_ACTION_MANAGER
+    qDebug() << "ActionManager::addConstTCPOrientAction() : added thread: "
+             << actions[static_cast<int>(actions.size()) - 1]->thread();
+#endif
+}
+
+void ActionManager::addSetSingleJointAction(int joint, int thetaDeg)
+{
+    actions.push_back(new SetSingleJointAction(joint, thetaDeg, arduinoPort, flags));
+    actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
+    emit writeToTerminal("Akcja ustawienia jednego przegubu dodana");
+}
+
+void ActionManager::addGripperAction(int set)
+{
+    actions.push_back(new GripperAction(set, arduinoPort, flags));
+    actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
+    emit writeToTerminal("Akcja chwytaka dodana");
+}
+
+bool ActionManager::isCheckCalculations()
+{
+    return checkCalculations;
+}
+
+void ActionManager::setRobotPtr(Robot * ptr)
+{
+    robotPtr = ptr;
+}
+
+bool ActionManager::isStarted()
+{
+    return started;
+}
 
 void ActionManager::setFlagsPtr(Flags * ptr)
 {

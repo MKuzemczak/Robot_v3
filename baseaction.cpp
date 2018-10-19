@@ -4,6 +4,7 @@ BaseAction::BaseAction()
 {
     calculated = false;
     done = false;
+    parentThreadPtr = nullptr;
 }
 
 BaseAction::BaseAction(QObject * parent) :
@@ -11,6 +12,7 @@ BaseAction::BaseAction(QObject * parent) :
 {
     calculated = false;
     done = false;
+    parentThreadPtr = nullptr;
 }
 
 BaseAction::~BaseAction()

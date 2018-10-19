@@ -15,6 +15,7 @@ class Joint
     double Theta; // kat Theta - wokol tego Z
     double aLength; // dlugosc a - wzdluz tego x
     double dLength; // długość d - wzdluz poprzedniego z
+    double baseTheta;
     Eigen::Matrix4d DHmatrix; // macierz DH transformacji punktu w tym ukladzie do poprzedniego ukladu
     Eigen::Vector3d locationInGlobal,  // wektor polozenia przegubu w globalnym ukladzie
         ZaxisInGlobal;
@@ -37,48 +38,41 @@ public:
 
     /////////////////////////////////////// setters & getters & adders
     void setAlpha(double a);
-
     double getAlpha();
 
     // aktualizuj kat Theta
     void setTheta(double T);
-
     double getTheta();
 
-    void setaLength(double l);
+    void setBaseTheta(double t);
+    double getBaseTheta();
 
+    void setaLength(double l);
     double getaLength();
 
     void setdLength(double l);
-
     double getdLength();
 
     void setLocation(Eigen::Vector3d & v);
-
     Eigen::Vector3d & getLocation();
 
     void setZinGlobal(Eigen::Vector3d & v);
-
     Eigen::Vector3d & getZinGlobal();
 
     Eigen::Matrix4d & getDHmatrix();
 
     void addServoMinMax(int min, int max);
-
     void setServoMinMax(int servo, int min, int max);
-
-    void setConversionMinMaxDeg(int min, int max);
-
-    void setConstructionMinMaxDeg(int min, int max);
-
-    Eigen::Vector2i & getConstructionMinMaxDeg();
-
     int getServoAmount();
 
-    int getConstructionMinDeg();
-    int getConstructionMaxDeg();
+    void setConversionMinMaxDeg(int min, int max);
     int getConversionMinDeg();
     int getConversionMaxDeg();
+
+    void setConstructionMinMaxDeg(int min, int max);
+    Eigen::Vector2i & getConstructionMinMaxDeg();
+    int getConstructionMinDeg();
+    int getConstructionMaxDeg();
     ///////////////////////////////////////////////////////// !setters & getters & adders
 
 };

@@ -74,6 +74,10 @@ public slots:
     void emitSet();
     void emitPointToList();
     void displayPoint(int x, int y, int z);
+    void setPortDiodeOn();
+    void setPortDiodeOff();
+    void setRunningDiodeOn();
+    void setRunningDiodeOff();
 
 };
 

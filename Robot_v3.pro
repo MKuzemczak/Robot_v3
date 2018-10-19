@@ -35,7 +35,9 @@ SOURCES += \
     maincontrolwidget.cpp \
     diode.cpp \
     fixedgridlayout.cpp \
-    terminal.cpp
+    terminal.cpp \
+    archmovaction.cpp \
+    joystick.cpp
 
 HEADERS += \
     gui.h \
@@ -61,4 +63,5 @@ HEADERS += \
     maincontrolwidget.h \
     diode.h \
     fixedgridlayout.h \
-    terminal.h
+    terminal.h \
+    joystick.h

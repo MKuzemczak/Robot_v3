@@ -24,8 +24,6 @@ class SerialCommunicatorThread : public QThread
 
     char byte;
 
-    bool connected;
-
     void run() override;
 
 public:
@@ -40,12 +38,11 @@ public slots:
 
 signals:
     void bufferReadyToRead(std::string);
-    void portConnected();
     void portDisconnected();
     void writeToTerminal(QString);
     void writeToTerminal(int);
     void writeToTerminal(double);
-    void writeToTerminal(char const *);
+    void writeToTerminal(char *);
     void writeToTerminal(char);
     void writeToTerminal(std::string);
 };

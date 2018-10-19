@@ -8,6 +8,7 @@ Joint::Joint()
     Theta = 0;
     aLength = 0;
     dLength = 0;
+    baseTheta = 0;
 
     DHmatrix = Eigen::Matrix4d::Identity();
 }
@@ -18,6 +19,7 @@ Joint::Joint(double a, double al, double dl)
     Theta = 0;
     aLength = al;
     dLength = dl;
+    baseTheta = 0;
 
     DHmatrix = Eigen::Matrix4d::Identity();
 }
@@ -33,13 +35,13 @@ Joint::~Joint()
  **/
 void Joint::mapThetaToServo(Lista<int> & lista)
 {
-    for (int i = 0; i < (int)servosMinMax.size(); i++)
+    for (int i = 0; i < static_cast<int>(servosMinMax.size()); i++)
     {
-        int a = (int)map(Theta,
-            (double)angleConversionMinMaxDeg[0]*DEG_TO_RAD,
-            (double)angleConversionMinMaxDeg[1]*DEG_TO_RAD,
-            (double)servosMinMax[i][0],
-            (double)servosMinMax[i][1]);
+        int a = static_cast<int>(map(Theta,
+            static_cast<double>(angleConversionMinMaxDeg[0]*DEG_TO_RAD),
+            static_cast<double>(angleConversionMinMaxDeg[1]*DEG_TO_RAD),
+            static_cast<double>(servosMinMax[i][0]),
+            static_cast<double>(servosMinMax[i][1])));
 
 #ifdef DEBUG_JOINT
         qDebug("Joint::Theta == %lf\n", Theta);
@@ -76,7 +78,7 @@ int Joint::getConversionMaxDeg()
 
 int Joint::getServoAmount()
 {
-    return servosMinMax.size();
+    return static_cast<int>(servosMinMax.size());
 }
 
 void Joint::setAlpha(double a)

@@ -30,44 +30,62 @@ SerialCommunicatorThread::SerialCommunicatorThread(SerialPort * p, Flags * ptr)
 
 void SerialCommunicatorThread::run()
 {
-
-    while(port->isConnected())
+    while(true)
     {
-        if(port->isDataToRead())
+        if(port->isConnected())
         {
-            port->readSerialPort(&byte, 1);
-
-            if(byte >= FLAG_OFFSET && byte < FLAG_OFFSET + NUM_OF_FLAGS)
+            if(!connected)
             {
-                flags->set(byte);
+                connected = true;
 
-                if(byte == ARDUINO_MOV_FIN)
-                    qDebug() << "Mov fin received";
+                emit portConnected();
+            }
+
+            if(port->isDataToRead())
+            {
+                port->readSerialPort(&byte, 1);
+
+                if(byte >= FLAG_OFFSET && byte < FLAG_OFFSET + NUM_OF_FLAGS)
+                {
+                    flags->set(byte);
+
+                    if(byte == ARDUINO_MOV_FIN)
+                        qDebug() << "Mov fin received";
 
 #ifdef DEBUG_SERIAL_COMMUNICATOR
-                qDebug() << "SerialCommunicator::checkComFlags() : set flag: " << byte;
+                    qDebug() << "SerialCommunicator::checkComFlags() : set flag: " << byte;
 #endif
-            }
-            else
-            {
-                if(byte == '\n')
-                {
-                    emit bufferReadyToRead(buffer);
-                    clearBuffer();
                 }
                 else
                 {
-                    buffer += byte;
+                    if(byte == '\n')
+                    {
+                        emit bufferReadyToRead(buffer);
+                        clearBuffer();
+                    }
+                    else
+                    {
+                        buffer += byte;
 
 #ifdef DEBUG_SERIAL_COMMUNICATOR
-                    qDebug() << "SerialCommunicator::checkComFlags() : byte added to buffer: " << byte;
+                        qDebug() << "SerialCommunicator::checkComFlags() : byte added to buffer: " << byte;
 #endif
+                    }
                 }
             }
         }
+        else
+        {
+            if(connected)
+            {
+                connected = false;
+                emit portDisconnected();
+            }
+            msleep(1000);
+            port->init();
+        }
     }
 
-    emit portDisconnected();
 }
 
 
@@ -79,4 +97,9 @@ void SerialCommunicatorThread::clearBuffer()
 std::string SerialCommunicatorThread::getBuffer()
 {
     return buffer;
+}
+
+bool SerialCommunicatorThread::isConnected()
+{
+    return port->isConnected();
 }

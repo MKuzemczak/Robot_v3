@@ -76,7 +76,7 @@ QGroupBox * MainControlWidget::createPointMovBox()
     vbox->addItem(hbox4);
 
     box->setLayout(vbox);
-    box->setMaximumSize(500, 200);
+    box->setMaximumSize(500, 100);
 
     return box;
 }
@@ -142,7 +142,7 @@ QGroupBox * MainControlWidget::createButtonMovBox()
     hbox->addItem(vbox1);
 
     box->setLayout(hbox);
-    box->setMaximumWidth(500);
+    box->setMaximumSize(500, 150);
 
     return box;
 
@@ -189,4 +189,24 @@ void MainControlWidget::displayPoint(int x, int y, int z)
     xEdit->setText(QString("%1").arg(x));
     yEdit->setText(QString("%1").arg(y));
     zEdit->setText(QString("%1").arg(z));
+}
+
+void MainControlWidget::setPortDiodeOn()
+{
+    serialStateDiode->setOn();
+}
+
+void MainControlWidget::setPortDiodeOff()
+{
+    serialStateDiode->setOff();
+}
+
+void MainControlWidget::setRunningDiodeOn()
+{
+    runningDiode->setOn();
+}
+
+void MainControlWidget::setRunningDiodeOff()
+{
+    runningDiode->setOff();
 }
