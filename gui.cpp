@@ -19,7 +19,7 @@ GUI::GUI(QWidget *parent) :
     dialog = new QDialog(this);
 
     tabWidget = new QTabWidget;
-    tabWidget->addTab(new MainTab(program), "Tab 1");
+    tabWidget->addTab(new MainTab(program), "Sterowanie");
     tabWidget->addTab(new TestTab(), "Test");
     tabWidget->addTab(b, "Tab 2");
 
@@ -36,7 +36,7 @@ GUI::GUI(QWidget *parent) :
     layout->addWidget(tabWidget);
     this->setLayout(layout);
 
-    program->scanConfig();
+    //program->scanConfig();
     static_cast<MainTab*>(tabWidget->widget(0))->scanConfig();
 }
 

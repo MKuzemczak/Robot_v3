@@ -1,7 +1,8 @@
 #include "maincontrolwidget.h"
 
-MainControlWidget::MainControlWidget(int sliderNumber, QWidget *parent) :
-    QWidget(parent)
+MainControlWidget::MainControlWidget(Program * pr, QWidget *parent) :
+    QWidget(parent),
+    program(pr)
 {
     runningDiode = new Diode("W ruchu", this);
     serialStateDiode = new Diode("Połączenie", this);
@@ -15,8 +16,16 @@ MainControlWidget::MainControlWidget(int sliderNumber, QWidget *parent) :
     layout->addWidget(createPointMovBox(), 2, 0, 1, 5);
     layout->addWidget(createButtonMovBox(), 3, 0, 1, 5);
     layout->addWidget(createSequenceControlBox(), 4, 0, 1, 5);
+    layout->addWidget(createSliderBox(), 2, 5, 2, 1);
+    layout->addWidget(createGripperBox(), 4, 5);
 
     setLayout(layout);
+
+    connect(program, SIGNAL(robotSet(int, int, int)), this, SLOT(displayPoint(int, int, int)));
+    connect(program, SIGNAL(portDisconnected()), serialStateDiode, SLOT(setOn()));
+    connect(program, SIGNAL(portConnected()), serialStateDiode, SLOT(setOff()));
+    connect(program, SIGNAL(stopped()), runningDiode, SLOT(setOff()));
+    connect(program, SIGNAL(started()), runningDiode, SLOT(setOn()));
 }
 
 
@@ -31,6 +40,7 @@ QGroupBox * MainControlWidget::createPointMovBox()
     toListButton->setMaximumWidth(100);
 
     connect(setButton, SIGNAL(clicked()), this, SLOT(emitSet()));
+    connect(this, SIGNAL(set(int, int, int)), program, SLOT(setRobot(int, int, int)));
     connect(toListButton, SIGNAL(clicked()), this, SLOT(emitPointToList()));
 
     xEdit = new QLineEdit(this);
@@ -104,22 +114,22 @@ QGroupBox * MainControlWidget::createButtonMovBox()
     aheadButton->setMaximumWidth(100);
     drawBackButton->setMaximumWidth(100);
 
-    connect(upButton, SIGNAL(pressed()), this, SIGNAL(upPressed()));
-    connect(upButton, SIGNAL(released()), this, SIGNAL(upReleased()));
-    connect(downButton, SIGNAL(pressed()), this, SIGNAL(downPressed()));
-    connect(downButton, SIGNAL(released()), this, SIGNAL(downReleased()));
-    connect(leftButton, SIGNAL(pressed()), this, SIGNAL(leftPressed()));
-    connect(leftButton, SIGNAL(released()), this, SIGNAL(leftReleased()));
-    connect(rightButton, SIGNAL(pressed()), this, SIGNAL(rightPressed()));
-    connect(rightButton, SIGNAL(released()), this, SIGNAL(rightReleased()));
-    connect(frontButton, SIGNAL(pressed()), this, SIGNAL(frontPressed()));
-    connect(frontButton, SIGNAL(released()), this, SIGNAL(frontReleased()));
-    connect(rearButton, SIGNAL(pressed()), this, SIGNAL(rearPressed()));
-    connect(rearButton, SIGNAL(released()), this, SIGNAL(rearReleased()));
-    connect(aheadButton, SIGNAL(pressed()), this, SIGNAL(aheadPressed()));
-    connect(aheadButton, SIGNAL(released()), this, SIGNAL(aheadReleased()));
-    connect(drawBackButton, SIGNAL(pressed()), this, SIGNAL(drawBackPressed()));
-    connect(drawBackButton, SIGNAL(released()), this, SIGNAL(drawBackReleased()));
+    connect(upButton, SIGNAL(pressed()), program->joystick, SLOT(startUp()));
+    connect(upButton, SIGNAL(released()), program, SLOT(stop()));
+    connect(downButton, SIGNAL(pressed()), program->joystick, SLOT(startDown()));
+    connect(downButton, SIGNAL(released()), program, SLOT(stop()));
+    connect(leftButton, SIGNAL(pressed()), program->joystick, SLOT(startLeft()));
+    connect(leftButton, SIGNAL(released()), program, SLOT(stop()));
+    connect(rightButton, SIGNAL(pressed()), program->joystick, SLOT(startRight()));
+    connect(rightButton, SIGNAL(released()), program, SLOT(stop()));
+    connect(frontButton, SIGNAL(pressed()), program->joystick, SLOT(startFront()));
+    connect(frontButton, SIGNAL(released()), program, SLOT(stop()));
+    connect(rearButton, SIGNAL(pressed()), program->joystick, SLOT(startRear()));
+    connect(rearButton, SIGNAL(released()), program, SLOT(stop()));
+    connect(aheadButton, SIGNAL(pressed()), program->joystick, SLOT(startAhead()));
+    connect(aheadButton, SIGNAL(released()), program, SLOT(stop()));
+    connect(drawBackButton, SIGNAL(pressed()), program->joystick, SLOT(startDrawBack()));
+    connect(drawBackButton, SIGNAL(released()), program, SLOT(stop()));
 
     QGridLayout * grid0 = new QGridLayout;
 
@@ -156,8 +166,8 @@ QGroupBox * MainControlWidget::createSequenceControlBox()
     runButton = new QPushButton("Start", this);
     stopButton = new QPushButton("Stop", this);
 
-    connect(runButton, SIGNAL(clicked()), this, SIGNAL(runClicked()));
-    connect(stopButton, SIGNAL(clicked()), this, SIGNAL(stopClicked()));
+    connect(runButton, SIGNAL(clicked()), program, SLOT(startSequence()));
+    connect(stopButton, SIGNAL(clicked()), program, SLOT(stop()));
 
     runButton->setMaximumWidth(100);
     stopButton->setMaximumWidth(100);
@@ -172,6 +182,67 @@ QGroupBox * MainControlWidget::createSequenceControlBox()
 
     return box;
 
+}
+
+QGroupBox * MainControlWidget::createSliderBox()
+{
+    int dof = program->getRobotDOF();
+
+    QGridLayout * grid = new QGridLayout;
+
+    for(int i = 0; i < dof; i++)
+    {
+        sliders.push_back(new QSlider(Qt::Horizontal, this));
+        sliders[i]->setMinimum(program->robot.getJointConstructionMin(i));
+        sliders[i]->setMaximum(program->robot.getJointConstructionMax(i));
+        sliders[i]->setValue(static_cast<int>(program->robot.getJointThetaRad(i)/DEG_TO_RAD));
+        connect(sliders[i], SIGNAL(sliderMoved(int)), this, SLOT(handleSliderAction()));
+
+        sliderLabels.push_back(new QLabel(QString("Przegub %1:").arg(i), this));
+        sliderLabels.push_back(new QLabel(QString("%1").arg(sliders[i]->minimum()), this));
+        sliderLabels.push_back(new QLabel(QString("%1").arg(sliders[i]->maximum()), this));
+
+        sliderLineEdits.push_back(new QLineEdit(this));
+        sliderLineEdits[i]->setText(QString("%1").arg(sliders[i]->value()));
+        sliderLineEdits[i]->setMaximumWidth(30);
+
+        grid->addWidget(sliderLabels[i*3], i, 0);
+        grid->addWidget(sliderLabels[i*3 + 1], i, 1);
+        grid->addWidget(sliders[i], i, 2);
+        grid->addWidget(sliderLabels[i*3 + 2], i, 3);
+        grid->addWidget(sliderLineEdits[i], i, 4);
+
+    }
+
+    connect(this, SIGNAL(sliderChanged(int, int)), program, SLOT(setJointAngleDeg(int, int)));
+    connect(program, SIGNAL(anglesChanged()), this, SLOT(updateSliders()));
+
+    QGroupBox * box = new QGroupBox("Przeguby");
+
+    box->setLayout(grid);
+    box->setMinimumSize(100, dof*40);
+    box->setMaximumSize(400, dof*40);
+
+    return box;
+}
+
+QGroupBox * MainControlWidget::createGripperBox()
+{
+    QGroupBox * box = new QGroupBox("Chwytak");
+
+    gripperSlider = new QSlider(Qt::Horizontal);
+    gripperSlider->setMinimum(program->robot.getGripperMin());
+    gripperSlider->setMaximum(program->robot.getGripperMax());
+    gripperSlider->setValue(program->robot.getGripper());
+
+    connect(gripperSlider, SIGNAL(sliderMoved(int)), program, SLOT(setGripper(int)));
+
+    QHBoxLayout * hbox = new QHBoxLayout;
+    hbox->addWidget(gripperSlider);
+    box->setLayout(hbox);
+    box->setMaximumSize(400, 40);
+
+    return box;
 }
 
 void MainControlWidget::emitPointToList()
@@ -190,6 +261,8 @@ void MainControlWidget::displayPoint(int x, int y, int z)
     xEdit->setText(QString("%1").arg(x));
     yEdit->setText(QString("%1").arg(y));
     zEdit->setText(QString("%1").arg(z));
+
+    gripperSlider->setValue(program->robot.getGripper());
 }
 
 void MainControlWidget::setPortDiodeOn()
@@ -210,4 +283,29 @@ void MainControlWidget::setRunningDiodeOn()
 void MainControlWidget::setRunningDiodeOff()
 {
     runningDiode->setOff();
+}
+
+void MainControlWidget::handleSliderAction()
+{
+    for(int i = 0; i < program->robot.getDOF(); i++)
+    {
+        QString s0(QString("%1").arg(sliders[i]->value()));
+
+        if(s0 != sliderLineEdits[i]->text())
+        {
+            sliderLineEdits[i]->setText(s0);
+            emit sliderChanged(i, sliders[i]->value());
+        }
+    }
+}
+
+void MainControlWidget::updateSliders()
+{
+    for(int i = 0; i < program->robot.getDOF(); i++)
+    {
+        sliders[i]->setValue(static_cast<int>(program->robot.getJointThetaRad(i)/DEG_TO_RAD));
+        sliderLineEdits[i]->setText(QString("%1").arg(sliders[i]->value()));
+    }
+
+    gripperSlider->setValue(program->robot.getGripper());
 }

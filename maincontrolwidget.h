@@ -14,10 +14,13 @@
 #include "diode.h"
 #include "fixedgridlayout.h"
 #include "lista.h"
+#include "program.h"
 
 class MainControlWidget : public QWidget
 {
     Q_OBJECT
+
+    Program * program;
 
     QPushButton * runButton,
                 * stopButton,
@@ -49,12 +52,16 @@ class MainControlWidget : public QWidget
     Lista<QLabel*> sliderLabels;
     Lista<QLineEdit*> sliderLineEdits;
 
+    QSlider * gripperSlider;
+
     QGroupBox * createPointMovBox();
     QGroupBox * createButtonMovBox();
     QGroupBox * createSequenceControlBox();
+    QGroupBox * createSliderBox();
+    QGroupBox * createGripperBox();
 
 public:
-    explicit MainControlWidget(int sliderNumber, QWidget *parent = nullptr);
+    explicit MainControlWidget(Program * pr, QWidget *parent = nullptr);
 
 signals:
     void runClicked();
@@ -77,6 +84,7 @@ signals:
     void aheadReleased();
     void drawBackPressed();
     void drawBackReleased();
+    void sliderChanged(int, int);
 
 public slots:
     void emitSet();
@@ -86,6 +94,8 @@ public slots:
     void setPortDiodeOff();
     void setRunningDiodeOn();
     void setRunningDiodeOff();
+    void handleSliderAction();
+    void updateSliders();
 
 };
 

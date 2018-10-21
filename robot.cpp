@@ -842,9 +842,25 @@ void Robot::setGripper(int set)
     gripperSetting = set;
 }
 
+void Robot::setGripperMinMax(int min, int max)
+{
+    gripperMin = min;
+    gripperMax = max;
+}
+
 int Robot::getGripper()
 {
     return gripperSetting;
+}
+
+int Robot::getGripperMin()
+{
+    return gripperMin;
+}
+
+int Robot::getGripperMax()
+{
+    return gripperMax;
 }
 
 int Robot::getServoAmount()

@@ -49,9 +49,12 @@ Program::Program()
     connect(com, SIGNAL(writeToTerminal(std::string)), this, SIGNAL(writeToTerminal(std::string)));
 
     connect(joystick, SIGNAL(robotSet(int, int, int)), this, SIGNAL(robotSet(int, int, int)));
+    connect(joystick, SIGNAL(robotSet(int, int, int)), this, SIGNAL(anglesChanged()));
     joystick->start();
 
     pointList = nullptr;
+
+    scanConfig();
 }
 
 
@@ -218,6 +221,10 @@ void Program::stop()
     flags->set(STOP);
     emit writeToTerminal("Program - stop");
     emit stopped();
+    emit robotSet(static_cast<int>(robot.getTCPlocation()[0]),
+            static_cast<int>(robot.getTCPlocation()[1]),
+            static_cast<int>(robot.getTCPlocation()[2]));
+    emit anglesChanged();
 }
 
 bool Program::isSerialConnected()
@@ -339,6 +346,11 @@ void Program::scanConfig()
 
             }
 
+            if(slist0[0] == "gripper")
+            {
+                robot.setGripperMinMax(slist0[1].toInt(), slist0[2].toInt());
+                robot.setGripper(slist0[3].toInt());
+            }
             if (slist0[0] == "BASE")
             {
                 QString s;
@@ -371,8 +383,6 @@ void Program::deleteAction(int i)
 
 void Program::setRobot(int x, int y , int z)
 {
-    qDebug() << "Program::setRobot(...) : " << x << y << z;
-
     Eigen::Vector3d d;
     d << x, y, z;
 
@@ -385,12 +395,57 @@ void Program::setRobot(int x, int y , int z)
         return;
     }
 
+    emit started();
     while(!action.isDone())
     {
         action.execute();
     }
 
+    emit stopped();
     emit robotSet(x, y, z);
+    emit anglesChanged();
+}
+
+int Program::getRobotDOF()
+{
+    return robot.getDOF();
+}
+
+
+void Program::setJointAngleDeg(int joint, int theta)
+{
+    Lista<int> l;
+    std::string s;
+
+    robot.setThetaDeg(joint, theta);
+    robot.setTCPOrient(robot.getJointLocation(robot.getDOF() - 1) - robot.getTCPlocation());
+
+    robot.mapThetasToServos(l);
+
+    s = "B";
+
+    for (int j = 0; j < static_cast<int>(l.size()); j++)
+    {
+        s += std::to_string(l[j]) + "\n";
+    }
+
+    s += 'C';
+
+    while (!flags->isSet(ARDUINO_MOV_FIN)) ;
+
+    *arduinoPort << s;
+    flags->reset(ARDUINO_MOV_FIN);
+    emit robotSet(static_cast<int>(robot.getTCPlocation()[0]),
+            static_cast<int>(robot.getTCPlocation()[1]),
+            static_cast<int>(robot.getTCPlocation()[2]));
+}
+
+void Program::setGripper(int s)
+{
+    GripperAction action(s, arduinoPort, flags);
+
+    action.calculate(robot);
+    action.execute();
 }
 
 Program::~Program()

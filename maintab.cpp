@@ -5,7 +5,7 @@ MainTab::MainTab(Program * ptr, QWidget *parent) :
     program(ptr)
 {
     terminal = new Terminal(this);
-    mainControl = new MainControlWidget();
+    mainControl = new MainControlWidget(ptr);
     pointList = new PointListWidget();
     actionList = new ActionListWidget();
     actionList->setPointListPtr(pointList);
@@ -35,45 +35,17 @@ MainTab::MainTab(Program * ptr, QWidget *parent) :
 
     this->setLayout(layout);
 
-    if(program != nullptr)
-    {
-        connect(actionList, SIGNAL(actionAdded(ActionType, QString)), program, SLOT(addAction(ActionType, QString)));
-        connect(actionList, SIGNAL(actionDeleted(int)), program, SLOT(deleteAction(int)));
-        connect(mainControl, SIGNAL(runClicked()), program, SLOT(startSequence()));
-        connect(mainControl, SIGNAL(set(int, int, int)), program, SLOT(setRobot(int, int, int)));
-        connect(program, SIGNAL(robotSet(int, int, int)), mainControl, SLOT(displayPoint(int, int, int)));
-        connect(program, SIGNAL(portDisconnected()), mainControl, SLOT(setPortDiodeOff()));
-        connect(program, SIGNAL(portConnected()), mainControl, SLOT(setPortDiodeOn()));
-        connect(program, SIGNAL(stopped()), mainControl, SLOT(setRunningDiodeOff()));
-        connect(program, SIGNAL(started()), mainControl, SLOT(setRunningDiodeOff()));
-        if(program->isSerialConnected())
-            mainControl->setPortDiodeOn();
+    connect(actionList, SIGNAL(actionAdded(ActionType, QString)), program, SLOT(addAction(ActionType, QString)));
+    connect(actionList, SIGNAL(actionDeleted(int)), program, SLOT(deleteAction(int)));
+    if(program->isSerialConnected())
+        mainControl->setPortDiodeOn();
 
-        connect(program, SIGNAL(writeToTerminal(QString)), terminal, SLOT(write(QString)));
-        connect(program, SIGNAL(writeToTerminal(int)), terminal, SLOT(write(int)));
-        connect(program, SIGNAL(writeToTerminal(double)), terminal, SLOT(write(double)));
-        connect(program, SIGNAL(writeToTerminal(char)), terminal, SLOT(write(char)));
-        connect(program, SIGNAL(writeToTerminal(char const *)), terminal, SLOT(write(char const *)));
-        connect(program, SIGNAL(writeToTerminal(std::string)), terminal, SLOT(write(std::string)));
-
-        connect(mainControl, SIGNAL(upPressed()), program->joystick, SLOT(startUp()));
-        connect(mainControl, SIGNAL(downPressed()), program->joystick, SLOT(startDown()));
-        connect(mainControl, SIGNAL(leftPressed()), program->joystick, SLOT(startLeft()));
-        connect(mainControl, SIGNAL(rightPressed()), program->joystick, SLOT(startRight()));
-        connect(mainControl, SIGNAL(frontPressed()), program->joystick, SLOT(startFront()));
-        connect(mainControl, SIGNAL(rearPressed()), program->joystick, SLOT(startRear()));
-        connect(mainControl, SIGNAL(aheadPressed()), program->joystick, SLOT(startAhead()));
-        connect(mainControl, SIGNAL(drawBackPressed()), program->joystick, SLOT(startDrawBack()));
-        connect(mainControl, SIGNAL(upReleased()), program, SLOT(stop()));
-        connect(mainControl, SIGNAL(downReleased()), program, SLOT(stop()));
-        connect(mainControl, SIGNAL(leftReleased()), program, SLOT(stop()));
-        connect(mainControl, SIGNAL(rightReleased()), program, SLOT(stop()));
-        connect(mainControl, SIGNAL(frontReleased()), program, SLOT(stop()));
-        connect(mainControl, SIGNAL(rearReleased()), program, SLOT(stop()));
-        connect(mainControl, SIGNAL(aheadReleased()), program, SLOT(stop()));
-        connect(mainControl, SIGNAL(drawBackReleased()), program, SLOT(stop()));
-
-    }
+    connect(program, SIGNAL(writeToTerminal(QString)), terminal, SLOT(write(QString)));
+    connect(program, SIGNAL(writeToTerminal(int)), terminal, SLOT(write(int)));
+    connect(program, SIGNAL(writeToTerminal(double)), terminal, SLOT(write(double)));
+    connect(program, SIGNAL(writeToTerminal(char)), terminal, SLOT(write(char)));
+    connect(program, SIGNAL(writeToTerminal(char const *)), terminal, SLOT(write(char const *)));
+    connect(program, SIGNAL(writeToTerminal(std::string)), terminal, SLOT(write(std::string)));
 
 }
 

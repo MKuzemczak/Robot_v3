@@ -30,14 +30,14 @@ class Program : public QObject
 
     SerialPort * arduinoPort;
 
-    Robot robot;
-
     PointListWidget * pointList;
 
     Eigen::Vector3d robotBase;
 
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    Robot robot;
 
     Program();
     ~Program();
@@ -52,6 +52,7 @@ public:
 
     bool isSerialConnected();
     void scanConfig();
+    int getRobotDOF();
 
 signals:
     void robotSet(int, int, int);
@@ -65,6 +66,7 @@ signals:
     void writeToTerminal(std::string);
     void started();
     void stopped();
+    void anglesChanged();
 
 public slots:
     void print(std::string s);
@@ -76,6 +78,8 @@ public slots:
     void deleteAction(int);
     void startSequence();
     void stop();
+    void setJointAngleDeg(int, int);
+    void setGripper(int);
 };
 
 #endif // PROGRAM_H

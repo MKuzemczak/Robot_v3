@@ -22,7 +22,9 @@ class Robot
     Joint TCP;// polozenie TCP
     int DOF;// liczba DOF
 
-    int gripperSetting;
+    int gripperSetting,
+        gripperMin,
+        gripperMax;
 
     Eigen::Vector3d TCPOrient;
 
@@ -99,8 +101,11 @@ public:
     void setTCPOrient(Eigen::Vector3d v);
     Eigen::Vector3d & getTCPOrient();
 
+    void setGripperMinMax(int, int);
     void setGripper(int set);
     int getGripper();
+    int getGripperMin();
+    int getGripperMax();
 
     QString getBasePos();
     void setBasePos(QString);
