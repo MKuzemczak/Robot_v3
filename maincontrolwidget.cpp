@@ -1,6 +1,7 @@
 #include "maincontrolwidget.h"
 
-MainControlWidget::MainControlWidget(QWidget *parent) : QWidget(parent)
+MainControlWidget::MainControlWidget(int sliderNumber, QWidget *parent) :
+    QWidget(parent)
 {
     runningDiode = new Diode("W ruchu", this);
     serialStateDiode = new Diode("Połączenie", this);
@@ -181,7 +182,7 @@ void MainControlWidget::emitPointToList()
 void MainControlWidget::emitSet()
 
 {
-    emit set(xEdit->text().toInt(), zEdit->text().toInt(), yEdit->text().toInt());
+    emit set(xEdit->text().toInt(), yEdit->text().toInt(), zEdit->text().toInt());
 }
 
 void MainControlWidget::displayPoint(int x, int y, int z)

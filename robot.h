@@ -6,8 +6,8 @@
 #include "lista.h"
 #include "joint.h"
 
-#define DEBUG_ROBOT
-#define DEBUG_ROBOT1
+//#define DEBUG_ROBOT
+//#define DEBUG_ROBOT1
 
 #include <QThread>
 

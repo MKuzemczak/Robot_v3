@@ -7,6 +7,7 @@ Joystick::Joystick(QObject *parent) :
     flags = nullptr;
     port = nullptr;
     sent = true;
+    move = false;
 
 }
 
@@ -17,7 +18,9 @@ Joystick::Joystick(Robot * rptr, Flags * fptr, SerialPort * pptr, QObject *paren
     flags = fptr;
     port = pptr;
     sent = true;
+    move = false;
 }
+
 
 void Joystick::run()
 {
@@ -27,29 +30,41 @@ void Joystick::run()
         return;
     }
 
-    while(!flags->isSet(STOP))
+    while(true)
     {
-        qDebug() << "Joystick::run() : poczatek petli";
-
-        ConstTCPOrientAction action(robot->getTCPlocation(), robot->getTCPlocation() + 5*direction, port, flags);
-
-        qDebug() << "Joystick::run() : po definicji";
-
-        if(!action.calculate(*robot))
+        if(move && !flags->isSet(STOP))
         {
-            qDebug() << "error: Joystick::run() : błąd obliczeń";
-            emit writeToTerminal("error: Joystick::run() : błąd obliczeń");
-            stop();
-            return;
+            ConstTCPOrientAction action(robot->getTCPlocation(), robot->getTCPlocation() + 5*direction, port, flags);
+
+            if(!flags->isSet(STOP))
+            {
+                if(!action.calculate(*robot))
+                {
+                    qDebug() << "error: Joystick::run() : błąd obliczeń";
+                    emit writeToTerminal("error: Joystick::run() : błąd obliczeń");
+                    stop();
+                }
+            }
+            else
+            {
+                stop();
+            }
+
+            while(!flags->isSet(STOP) && move && !action.isDone())
+            {
+                action.execute();
+                emit robotSet(static_cast<int>(robot->getTCPlocation()[0]),
+                        static_cast<int>(robot->getTCPlocation()[1]),
+                        static_cast<int>(robot->getTCPlocation()[2]));
+            }
         }
-
-        while(!action.isDone())
-            action.execute();
-
-        qDebug() << "Joystick::run() : koniec petli";
+        else
+        {
+            msleep(100);
+        }
     }
 
-    stop();
+    flags->set(STOP);
 }
 
 
@@ -62,7 +77,7 @@ void Joystick::startUp()
 
     direction << 0, 1, 0;
 
-    start();
+    move = true;
 }
 
 void Joystick::startDown()
@@ -74,7 +89,7 @@ void Joystick::startDown()
 
     direction << 0, -1, 0;
 
-    start();
+    move = true;
 }
 
 void Joystick::startLeft()
@@ -86,7 +101,7 @@ void Joystick::startLeft()
 
     direction << 0, 0, -1;
 
-    start();
+    move = true;
 }
 
 void Joystick::startRight()
@@ -98,7 +113,7 @@ void Joystick::startRight()
 
     direction << 0, 0, 1;
 
-    start();
+    move = true;
 }
 
 void Joystick::startFront()
@@ -110,7 +125,7 @@ void Joystick::startFront()
 
     direction << 1, 0, 0;
 
-    start();
+    move = true;
 }
 
 void Joystick::startRear()
@@ -122,7 +137,7 @@ void Joystick::startRear()
 
     direction << -1, 0, 0;
 
-    start();
+    move = true;
 }
 
 void Joystick::startAhead()
@@ -134,7 +149,7 @@ void Joystick::startAhead()
 
     direction = -1 * robot->getTCPOrient().normalized();
 
-    start();
+    move = true;
 }
 
 void Joystick::startDrawBack()
@@ -146,13 +161,14 @@ void Joystick::startDrawBack()
 
     direction = robot->getTCPOrient().normalized();
 
-    start();
+    move = true;
 }
 
 void Joystick::stop()
 {
     flags->set(STOP);
-    this->exit();
+    move = false;
+    //this->exit();
 }
 
 bool Joystick::checkPtrs()

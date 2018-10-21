@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QThread>
+#include <QThreadPool>
 #include <QDebug>
 
 #include "eigenaddons.h"
@@ -22,7 +23,8 @@ class Joystick : public QThread
 
     Eigen::Vector3d direction;
 
-    bool sent;
+    bool sent,
+        move;
 
     void run() override;
     bool checkPtrs();
@@ -42,6 +44,7 @@ signals:
     void writeToTerminal(char const *);
     void writeToTerminal(char);
     void writeToTerminal(std::string);
+    void robotSet(int, int, int);
 
 
 public slots:

@@ -69,6 +69,7 @@ signals:
 public slots:
     void print(std::string s);
     void keyPressed(int);
+    void setRobot(int, int, int);
     void testRobotInit();
     void testRun();
     void addAction(ActionType type, QString info);

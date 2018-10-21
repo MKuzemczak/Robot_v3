@@ -48,6 +48,9 @@ Program::Program()
     connect(com, SIGNAL(writeToTerminal(char const *)), this, SIGNAL(writeToTerminal(char const *)));
     connect(com, SIGNAL(writeToTerminal(std::string)), this, SIGNAL(writeToTerminal(std::string)));
 
+    connect(joystick, SIGNAL(robotSet(int, int, int)), this, SIGNAL(robotSet(int, int, int)));
+    joystick->start();
+
     pointList = nullptr;
 }
 
@@ -364,6 +367,30 @@ void Program::scanConfig()
 void Program::deleteAction(int i)
 {
     manager->deleteAction(i);
+}
+
+void Program::setRobot(int x, int y , int z)
+{
+    qDebug() << "Program::setRobot(...) : " << x << y << z;
+
+    Eigen::Vector3d d;
+    d << x, y, z;
+
+    ConstTCPOrientAction action(robot.getTCPlocation(), d, arduinoPort, flags);
+
+    if(!action.calculate(robot))
+    {
+        qDebug() << "error: Program::setRobot() : błąd obliczeń";
+        emit writeToTerminal("error: Program::setRobot() : błąd obliczeń");
+        return;
+    }
+
+    while(!action.isDone())
+    {
+        action.execute();
+    }
+
+    emit robotSet(x, y, z);
 }
 
 Program::~Program()

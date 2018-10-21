@@ -40,6 +40,7 @@ MainTab::MainTab(Program * ptr, QWidget *parent) :
         connect(actionList, SIGNAL(actionAdded(ActionType, QString)), program, SLOT(addAction(ActionType, QString)));
         connect(actionList, SIGNAL(actionDeleted(int)), program, SLOT(deleteAction(int)));
         connect(mainControl, SIGNAL(runClicked()), program, SLOT(startSequence()));
+        connect(mainControl, SIGNAL(set(int, int, int)), program, SLOT(setRobot(int, int, int)));
         connect(program, SIGNAL(robotSet(int, int, int)), mainControl, SLOT(displayPoint(int, int, int)));
         connect(program, SIGNAL(portDisconnected()), mainControl, SLOT(setPortDiodeOff()));
         connect(program, SIGNAL(portConnected()), mainControl, SLOT(setPortDiodeOn()));

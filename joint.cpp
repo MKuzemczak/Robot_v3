@@ -103,6 +103,16 @@ double Joint::getTheta()
     return Theta;
 }
 
+void Joint::setBaseTheta(double t)
+{
+    baseTheta = t;
+}
+
+double Joint::getBaseTheta()
+{
+    return baseTheta;
+}
+
 void Joint::setaLength(double l)
 {
     aLength = l;

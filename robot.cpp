@@ -453,12 +453,8 @@ bool Robot::set(int startJoint, int endJoint, int setJoint, Eigen::Vector3d & po
     // poniżej słabe rozwiązanie, zrobione pod konretnego robota.
     // Algorytm powinien działać dla każdego łańcucha kinematycznego.
 
-    //Eigen::Vector2i tmp;
-
     if(startJoint == 0)
     {
-        //tmp = joints[0]->getConstructionMinMaxDeg();
-
         if(fabs(point[2]) < 0.01)
         {
             setThetaRad(0, 0);
@@ -474,16 +470,12 @@ bool Robot::set(int startJoint, int endJoint, int setJoint, Eigen::Vector3d & po
             qDebug() << "Robot::set(int, int, int, Eigen::Vector3d &), joints[0] theta construction min max";
 #endif
 
-         //   double tmp0;
 
             if (point[0] < 0)
                 setThetaRad(0, -atan((static_cast<double>(-point[2]))/(static_cast<double>(-point[0]))));
             else
                 setThetaRad(0, -atan((static_cast<double>(point[2]))/(static_cast<double>(point[0]))));
 
-            //setJointConstructionMinMax(0,
-              //                         static_cast<int>(tmp0 / DEG_TO_RAD) - 10,
-                //                       static_cast<int>(tmp0 / DEG_TO_RAD) + 10);
 
 #ifdef DEBUG_ROBOT1
        //     qDebug() << "tmp0 == " << tmp0;
@@ -495,13 +487,6 @@ bool Robot::set(int startJoint, int endJoint, int setJoint, Eigen::Vector3d & po
 
     }
 
-    // koniec tej części słabego rozwiązania.
-
-    Timer * timer = new Timer();
-
-    timer->start();
-
-    /////////////////////////////////////////////////// do testow
     for(int i = startJoint; i <= endJoint; i++)
     {
         joints[i]->setTheta(joints[i]->getBaseTheta());
@@ -509,54 +494,36 @@ bool Robot::set(int startJoint, int endJoint, int setJoint, Eigen::Vector3d & po
 
     updateDHmatrices();
     updateDHvectors();
-    //////////////////////////////////////////////////// !do testow
 
-    Lista<double> prevThetas;
-
-    for(int i = 0; i < static_cast<int>(joints.size()); i++)
-    {
-        prevThetas.push_back(joints[i]->getTheta());
-    }
-
+    double small = 0.01;
+    int cntr = 0;
 
     while (static_cast<double>((point - joints[setJoint]->getLocation()).norm()) > 1)
     {
         if(!jacobAlgStep(1, startJoint, endJoint, setJoint, point))
             return false;
 
-        if(timer->time() > 1000)
+        if(cntr > 10)
         {
-            timer->exit();
-
-            qDebug() << "error: Robot::set(int, int, int, Eigen::Vector3d &) :\n"
-                        "obliczenia osiagnely limit czasowy 1000 ms.";
-            return false;
-        }
-
-        for (int i = 0; i < static_cast<int>(joints.size()); i++)
-        {
-            double x0 = fabs(prevThetas[i] - DEG_TO_RAD*joints[i]->getConstructionMinDeg()),
-                    x1 = fabs(prevThetas[i] - DEG_TO_RAD*joints[i]->getConstructionMaxDeg()),
-                    x2 = fabs(joints[i]->getTheta() - DEG_TO_RAD*joints[i]->getConstructionMinDeg()),
-                    x3 = fabs(joints[i]->getTheta() - DEG_TO_RAD*joints[i]->getConstructionMaxDeg());
-
-            qDebug() << "haslo: " << x0 << x1 << x2 << x3;
-
-            if(x0 > SMALLEST &&
-                    x1 > SMALLEST &&
-                    (x2 < SMALLEST ||
-                    x3 < SMALLEST))
+            for (int i = 0; i < static_cast<int>(joints.size()); i++)
             {
-                qDebug() << "error: Robot::set(int, int, int, Eigen::Vector3d &) :\n"
-                            "przegub "
-                         << i
-                         << " osiagnal swoj zakres ruchu.\nPrzerywam obliczenia.";
+                double x0 = fabs(joints[i]->getTheta() - DEG_TO_RAD*joints[i]->getConstructionMinDeg()),
+                        x1 = fabs(joints[i]->getTheta() - DEG_TO_RAD*joints[i]->getConstructionMaxDeg());
 
-                return false;
+                if(x0 < small ||
+                        x1 < small)
+                {
+                    qDebug() << "error: Robot::set(int, int, int, Eigen::Vector3d &) :\n"
+                                "przegub "
+                             << i
+                             << " osiagnal swoj zakres ruchu.\nPrzerywam obliczenia.";
+
+                    return false;
+                }
             }
-
-            prevThetas[i] = joints[i]->getTheta();
         }
+
+        cntr++;
 
 #ifdef DEBUG_ROBOT
         qDebug("Robot::set(int, int, int, Eigen::Vector3d &), koniec petli\n");
@@ -575,12 +542,6 @@ bool Robot::set(int startJoint, int endJoint, int setJoint, Eigen::Vector3d & po
 
 #endif // DEBUG_ROBOT
     }
-
-    /*if(startJoint == 0)
-    {
-        setJointConstructionMinMax(0, tmp[0], tmp[1]);
-    }*/
-    timer->exit();
 
     return true;
 }
@@ -620,12 +581,8 @@ bool Robot::setExcluding(int excludedJoint, int setJoint, Eigen::Vector3d & poin
     // poniżej słabe rozwiązanie, zrobione pod konretnego robota.
     // Algorytm powinien działać dla każdego łańcucha kinematycznego.
 
-    //Eigen::Vector2i tmp;
-
     if(excludedJoint != 0)
     {
-        //tmp = joints[0]->getConstructionMinMaxDeg();
-
         if(fabs(point[2]) < 0.01)
         {
             setThetaRad(0, 0);
@@ -641,16 +598,11 @@ bool Robot::setExcluding(int excludedJoint, int setJoint, Eigen::Vector3d & poin
             qDebug() << "Robot::set(int, int, int, Eigen::Vector3d &), joints[0] theta construction min max";
 #endif
 
-         //   double tmp0;
-
             if (point[0] < 0)
                 setThetaRad(0, -atan((static_cast<double>(-point[2]))/(static_cast<double>(-point[0]))));
             else
                 setThetaRad(0, -atan((static_cast<double>(point[2]))/(static_cast<double>(point[0]))));
 
-            //setJointConstructionMinMax(0,
-              //                         static_cast<int>(tmp0 / DEG_TO_RAD) - 10,
-                //                       static_cast<int>(tmp0 / DEG_TO_RAD) + 10);
 
 #ifdef DEBUG_ROBOT1
        //     qDebug() << "tmp0 == " << tmp0;
@@ -669,58 +621,45 @@ bool Robot::setExcluding(int excludedJoint, int setJoint, Eigen::Vector3d & poin
             indexes.push_back(i);
     }
 
-    Timer * timer = new Timer();
-
-    timer->start();
-
-    Lista<double> prevThetas;
-
-    for(int i = 0; i < static_cast<int>(joints.size()); i++)
+    for(int i = 0; i < setJoint; i++)
     {
-        prevThetas.push_back(joints[i]->getTheta());
+        if(i != excludedJoint)
+            joints[i]->setTheta(joints[i]->getBaseTheta());
     }
 
+    updateDHmatrices();
+    updateDHvectors();
+
     double small = 0.01;
+    int cntr = 0;
 
     while (static_cast<double>((point - joints[setJoint]->getLocation()).norm()) > 1)
     {
         if(!jacobAlgStep(1, indexes, setJoint, point))
             return false;
 
-        if(timer->time() > 1000)
+
+        if(cntr > 10)
         {
-            timer->exit();
-
-            qDebug() << "error: Robot::set(int, int, int, Eigen::Vector3d &) :\n"
-                        "obliczenia osiagnely limit czasowy 1000 ms.";
-            return false;
-        }
-
-        for (int i = 0; i < static_cast<int>(joints.size()); i++)
-        {
-            double x0 = fabs(prevThetas[i] - DEG_TO_RAD*joints[i]->getConstructionMinDeg()),
-                    x1 = fabs(prevThetas[i] - DEG_TO_RAD*joints[i]->getConstructionMaxDeg()),
-                    x2 = fabs(joints[i]->getTheta() - DEG_TO_RAD*joints[i]->getConstructionMinDeg()),
-                    x3 = fabs(joints[i]->getTheta() - DEG_TO_RAD*joints[i]->getConstructionMaxDeg());
-
-            qDebug() << "haslo: " << x0 << x1 << x2 << x3;
-
-
-            if(x0 > small &&
-                    x1 > small &&
-                    (x2 < small||
-                    x3 < small))
+            for (int i = 0; i < static_cast<int>(joints.size()); i++)
             {
-                qDebug() << "error: Robot::set(int, int, int, Eigen::Vector3d &) :\n"
-                            "przegub "
-                         << i
-                         << " osiagnal swoj zakres ruchu.\nPrzerywam obliczenia.";
+                double x0 = fabs(joints[i]->getTheta() - DEG_TO_RAD*joints[i]->getConstructionMinDeg()),
+                        x1 = fabs(joints[i]->getTheta() - DEG_TO_RAD*joints[i]->getConstructionMaxDeg());
 
-                return false;
+                if(x0 < small ||
+                        x1 < small)
+                {
+                    qDebug() << "error: Robot::set(int, int, int, Eigen::Vector3d &) :\n"
+                                "przegub "
+                             << i
+                             << " osiagnal swoj zakres ruchu.\nPrzerywam obliczenia.";
+
+                    return false;
+                }
             }
-
-            prevThetas[i] = joints[i]->getTheta();
         }
+
+        cntr++;
 
 #ifdef DEBUG_ROBOT
         qDebug("Robot::set(int, int, int, Eigen::Vector3d &), koniec petli\n");
@@ -740,12 +679,6 @@ bool Robot::setExcluding(int excludedJoint, int setJoint, Eigen::Vector3d & poin
 #endif // DEBUG_ROBOT
     }
 
-    /*if(startJoint == 0)
-    {
-        setJointConstructionMinMax(0, tmp[0], tmp[1]);
-    }*/
-
-    timer->exit();
 
     return true;
 }

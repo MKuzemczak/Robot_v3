@@ -6,12 +6,14 @@
 #include <QGridLayout>
 #include <QLineEdit>
 #include <QLabel>
+#include <QSlider>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
 #include "diode.h"
 #include "fixedgridlayout.h"
+#include "lista.h"
 
 class MainControlWidget : public QWidget
 {
@@ -30,6 +32,8 @@ class MainControlWidget : public QWidget
                 * setButton,
                 * toListButton;
 
+
+
     QLineEdit * xEdit,
                 * yEdit,
                 * zEdit;
@@ -41,12 +45,16 @@ class MainControlWidget : public QWidget
     Diode * runningDiode,
             * serialStateDiode;
 
+    Lista<QSlider*> sliders;
+    Lista<QLabel*> sliderLabels;
+    Lista<QLineEdit*> sliderLineEdits;
+
     QGroupBox * createPointMovBox();
     QGroupBox * createButtonMovBox();
     QGroupBox * createSequenceControlBox();
 
 public:
-    explicit MainControlWidget(QWidget *parent = nullptr);
+    explicit MainControlWidget(int sliderNumber, QWidget *parent = nullptr);
 
 signals:
     void runClicked();
