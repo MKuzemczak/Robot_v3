@@ -68,6 +68,8 @@ public:
     void setThetaRad(int joint, double theta);
     void setJointBaseThetaDeg(int joint, double theta);
     void setJointBaseThetaRad(int joint, double theta);
+    int getJointBaseThetaDeg(int joint);
+    double getJointBaseThetaRad(int joint);
 
     void setTCPaLength(double l);
 

@@ -35,13 +35,16 @@ QGroupBox * MainControlWidget::createPointMovBox()
 
     setButton = new QPushButton("Ustaw", this);
     toListButton = new QPushButton("Dodaj do listy", this);
+    setToBaseButton = new QPushButton("Do bazy", this);
 
     setButton->setMaximumWidth(100);
     toListButton->setMaximumWidth(100);
+    setToBaseButton->setMaximumWidth(100);
 
     connect(setButton, SIGNAL(clicked()), this, SLOT(emitSet()));
     connect(this, SIGNAL(set(int, int, int)), program, SLOT(setRobot(int, int, int)));
     connect(toListButton, SIGNAL(clicked()), this, SLOT(emitPointToList()));
+    connect(setToBaseButton, SIGNAL(clicked()), program, SLOT(setRobotToBase()));
 
     xEdit = new QLineEdit(this);
     yEdit = new QLineEdit(this);
@@ -80,6 +83,7 @@ QGroupBox * MainControlWidget::createPointMovBox()
 
     hbox4->addWidget(setButton);
     hbox4->addWidget(toListButton);
+    hbox4->addWidget(setToBaseButton);
 
     QVBoxLayout * vbox = new QVBoxLayout;
 

@@ -80,6 +80,7 @@ public slots:
     void stop();
     void setJointAngleDeg(int, int);
     void setGripper(int);
+    void setRobotToBase();
 };
 
 #endif // PROGRAM_H

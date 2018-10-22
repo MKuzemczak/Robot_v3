@@ -33,7 +33,8 @@ class MainControlWidget : public QWidget
                 * aheadButton,
                 * drawBackButton,
                 * setButton,
-                * toListButton;
+                * toListButton,
+                * setToBaseButton;
 
 
 

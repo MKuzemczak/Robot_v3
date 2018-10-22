@@ -448,6 +448,38 @@ void Program::setGripper(int s)
     action.execute();
 }
 
+void Program::setRobotToBase()
+{
+    Lista<int> l;
+    std::string s;
+
+    for(int i = 0; i < robot.getDOF(); i++)
+    {
+        robot.setThetaRad(i, robot.getJointBaseThetaRad(i));
+    }
+
+    robot.setTCPOrient(robot.getJointLocation(robot.getDOF() - 1) - robot.getTCPlocation());
+
+    robot.mapThetasToServos(l);
+
+    s = "B";
+
+    for (int j = 0; j < static_cast<int>(l.size()); j++)
+    {
+        s += std::to_string(l[j]) + "\n";
+    }
+
+    s += 'C';
+
+    while (!flags->isSet(ARDUINO_MOV_FIN)) ;
+
+    *arduinoPort << s;
+    flags->reset(ARDUINO_MOV_FIN);
+    emit robotSet(static_cast<int>(robot.getTCPlocation()[0]),
+            static_cast<int>(robot.getTCPlocation()[1]),
+            static_cast<int>(robot.getTCPlocation()[2]));
+}
+
 Program::~Program()
 {
 

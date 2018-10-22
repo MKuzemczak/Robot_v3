@@ -895,6 +895,16 @@ void Robot::setJointBaseThetaRad(int joint, double theta)
     joints[joint]->setBaseTheta(theta);
 }
 
+int Robot::getJointBaseThetaDeg(int joint)
+{
+    return static_cast<int>(joints[joint]->getBaseTheta() / DEG_TO_RAD);
+}
+
+double Robot::getJointBaseThetaRad(int joint)
+{
+    return joints[joint]->getBaseTheta();
+}
+
 //////////////////////////////////////////////////////////////////// !setters & getters & adders
 
 
