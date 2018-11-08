@@ -48,7 +48,22 @@ bool ConstTCPOrientAction::calculate(Robot & robot)
             return false;
         }
 
-        if(!robot.set(robot.getRegJointsAmount(), robot.getDOF() - 1, robot.getDOF(), path[i]))
+        bool ret = true;
+
+        Eigen::Vector3d v0, v1;
+        v0 << path[i][0], 0, path[i][2];
+        v1 << -orient[0], 0, -orient[2];
+        if(asin(v0.cross(v1).norm())/(v0.norm()*v1.norm()) < DEG_TO_RAD)
+        {
+            qDebug() << "smol norm";
+            ret = robot.set(robot.getRegJointsAmount() + 1, robot.getDOF() - 1, robot.getDOF(), path[i]);
+        }
+        else
+        {
+            ret = robot.set(robot.getRegJointsAmount(), robot.getDOF() - 1, robot.getDOF(), path[i]);
+        }
+
+        if(!ret)
         {
             flags()->set(STOP);
             emit calculationsFailed();
@@ -151,4 +166,17 @@ void ConstTCPOrientAction::lerp(Lista<Eigen::Vector3d, Eigen::aligned_allocator<
 int ConstTCPOrientAction::size()
 {
     return static_cast<int>(pathInServoDegs.size());
+}
+
+
+void ConstTCPOrientAction::clear()
+{
+    for(int i = 0; i < static_cast<int>(pathInServoDegs.size()); i++)
+    {
+        pathInServoDegs[i].clear();
+    }
+
+    pathInServoDegs.clear();
+    resetCalculated();
+    resetDone();
 }

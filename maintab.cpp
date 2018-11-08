@@ -27,6 +27,8 @@ MainTab::MainTab(Program * ptr, QWidget *parent) :
 
     connect(mainControl, SIGNAL(upPressed()), this, SLOT(terminalTest()));
     connect(mainControl, SIGNAL(addPointToList(int, int, int)), pointList, SLOT(addPoint(int, int, int)));
+    connect(mainControl, SIGNAL(gripperToActions(ActionType, QString)), actionList, SLOT(addAction(ActionType, QString)));
+    connect(mainControl, SIGNAL(anglesToActions(ActionType, QString)), actionList, SLOT(addAction(ActionType, QString)));
     connect(terminal, SIGNAL(hidden()), this, SLOT(resizeTerminal()));
 
     QGridLayout *layout = new QGridLayout;
@@ -37,6 +39,7 @@ MainTab::MainTab(Program * ptr, QWidget *parent) :
 
     connect(actionList, SIGNAL(actionAdded(ActionType, QString)), program, SLOT(addAction(ActionType, QString)));
     connect(actionList, SIGNAL(actionDeleted(int)), program, SLOT(deleteAction(int)));
+    connect(actionList, SIGNAL(actionMoved(int, int, int)), program, SLOT(moveAction(int, int, int)));
     if(program->isSerialConnected())
         mainControl->setPortDiodeOn();
 
@@ -68,23 +71,22 @@ void MainTab::resizeTerminal()
 
 void MainTab::scanConfig()
 {
-    QFile data("pointAndActionConfig.dat");
+    QFile data("save/pointAndActionConfig.dat");
 
     if(data.open(QFile::ReadOnly))
     {
         QTextStream strm(&data);
-
         QStringList slist0, slist1;
-
+        Lista<QStringList> points, actions;
         QString line;
 
         while(!strm.atEnd())
         {
             line = strm.readLine();
 
-            slist0 = line.split(",");
+            slist0 = line.split(" ");
 
-            slist1 = slist0[1].split(" ");
+            slist1 = slist0[1].split(",");
 
             if(slist0[0] == "p")
             {
@@ -94,9 +96,11 @@ void MainTab::scanConfig()
                 }
                 else
                 {
-                    pointList->addPoint(slist1[0].toInt(),
-                            slist1[1].toInt(),
-                            slist1[2].toInt());
+                    QStringList s;
+                    s.push_back(slist1[0]);
+                    s.push_back(slist1[1]);
+                    s.push_back(slist1[2]);
+                    points.push_back(s);
                 }
             }
             else if(slist0[0] == "a")
@@ -110,9 +114,49 @@ void MainTab::scanConfig()
                         info += ",";
                 }
 
-                actionList->addAction(static_cast<ActionType>(slist1[0].toInt()), info);
+                QStringList s;
+                s.push_back(slist1[0]);
+                s.push_back(info);
+                actions.push_back(s);
             }
+        }
+
+        for(int i = 0; i < static_cast<int>(points.size()); i++)
+        {
+            pointList->addPoint(points[i][0].toInt(), points[i][1].toInt(), points[i][2].toInt());
+        }
+
+        for(int i = 0; i < static_cast<int>(actions.size()); i++)
+        {
+            actionList->addAction(static_cast<ActionType>(actions[i][0].toInt()), actions[i][1]);
         }
     }
 
+    connect(actionList, SIGNAL(actionAdded(ActionType, QString)), this, SLOT(saveConfig()));
+    connect(actionList, SIGNAL(actionDeleted(int)), this, SLOT(saveConfig()));
+    connect(actionList, SIGNAL(actionMoved(int, int, int)), this, SLOT(saveConfig()));
+    connect(pointList, SIGNAL(pointAdded(int, int, int)), this, SLOT(saveConfig()));
+    connect(pointList, SIGNAL(pointDeleted(int)), this, SLOT(saveConfig()));
+}
+
+void MainTab::saveConfig()
+{
+    QFile file("save/pointAndActionConfig.dat");
+    if(file.open(QFile::WriteOnly|QFile::Truncate|QFile::Text))
+    {
+        QTextStream stream(&file);
+
+        for(int i = 0; i < pointList->size(); i++)
+        {
+            stream << "p " << (*pointList)(i,0) << "," << (*pointList)(i,1) << "," << (*pointList)(i,2) << endl;
+        }
+
+        for(int i = 0; i < actionList->size(); i++)
+        {
+            stream << "a " << static_cast<int>(actionList->getActionType(i)) << "," << actionList->getActionInfo(i) << endl;
+        }
+
+        file.resize(file.pos());
+        file.close();
+    }
 }

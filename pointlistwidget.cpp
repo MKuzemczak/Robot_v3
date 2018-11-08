@@ -73,14 +73,19 @@ void PointListWidget::addPoint(int x, int y, int z)
     if((count - 1)%2 == 0)
         table->verticalHeaderItem(count - 1)->setBackgroundColor(QColor(0,0,0,10));
 
+    emit pointAdded(x, y, z);
 }
 
 void PointListWidget::deletePoint()
 {
+    int index = table->currentRow();
+
     if(table->currentRow() >= 0)
     {
-        table->removeRow(table->currentRow());
+        table->removeRow(index);
     }
+
+    emit pointDeleted(index);
 }
 
 void PointListWidget::openAddDialog(int x, int y, int z)
@@ -111,4 +116,9 @@ bool PointListWidget::containsName(QString n)
     }
 
     return false;
+}
+
+int PointListWidget::size()
+{
+    return table->rowCount();
 }

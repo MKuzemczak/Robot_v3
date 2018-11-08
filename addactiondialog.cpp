@@ -9,7 +9,8 @@ AddActionDialog::AddActionDialog(QWidget * parent) :
     typeList = new QComboBox(this);
 
     QStringList s = {"Linia prosta", "Wolny ruch", "Ruch po łuku", "Local change",
-                    "Postój", "Pojedynczy przegub", "const TCP orient", "Chwytak"};
+                    "Postój", "Pojedynczy przegub", "const TCP orient", "Chwytak",
+                    "Wszystkie kąty"};
 
     typeList->addItems(s);
 
@@ -21,6 +22,7 @@ AddActionDialog::AddActionDialog(QWidget * parent) :
     timeEdit = new QLineEdit(this);
     newAngleEdit = new QLineEdit(this);
     jointIndexEdit = new QLineEdit(this);
+    allAnglesEdit = new QLineEdit(this);
 
     startPointEdit->setPlaceholderText("np.: P1, p2");
     midPointEdit->setPlaceholderText("np.: P1, p2");
@@ -28,6 +30,15 @@ AddActionDialog::AddActionDialog(QWidget * parent) :
     timeEdit->setPlaceholderText("np.: 1000");
     newAngleEdit->setPlaceholderText("np.: 45");
     jointIndexEdit->setPlaceholderText("np.: 0, 1 itd.");
+    allAnglesEdit->setPlaceholderText("Kąty oddzielone przecinkami");
+
+    startPointEdit->installEventFilter(this);
+    midPointEdit->installEventFilter(this);
+    endPointEdit->installEventFilter(this);
+    timeEdit->installEventFilter(this);
+    newAngleEdit->installEventFilter(this);
+    jointIndexEdit->installEventFilter(this);
+    allAnglesEdit->installEventFilter(this);
 
     QRegExpValidator * v = new QRegExpValidator(QRegExp("[pP][0-9]{1,4}"), this);
 
@@ -44,6 +55,9 @@ AddActionDialog::AddActionDialog(QWidget * parent) :
     timeLabel = new QLabel("Czas [ms]", this);
     newAngleLabel = new QLabel("Nowy kąt", this);
     jointIndexLabel = new QLabel("Przegub", this);
+    allAnglesLabel = new QLabel("Kąty", this);
+
+    constTCPlocationCheckBox = new QCheckBox("Stałe położenie TCP", this);
 
     addButton = new QPushButton("Dodaj", this);
     cancelButton = new QPushButton("Anuluj", this);
@@ -60,14 +74,17 @@ AddActionDialog::AddActionDialog(QWidget * parent) :
     grid->addWidget(timeEdit, 4, 1, 1, 2);
     grid->addWidget(newAngleEdit, 5, 1, 1, 2);
     grid->addWidget(jointIndexEdit, 6, 1, 1, 2);
+    grid->addWidget(allAnglesEdit, 7, 1, 1, 2);
     grid->addWidget(startPointLabel, 1, 0, Qt::AlignRight);
     grid->addWidget(midPointLabel, 2, 0, Qt::AlignRight);
     grid->addWidget(endPointLabel, 3, 0, Qt::AlignRight);
     grid->addWidget(timeLabel, 4, 0, Qt::AlignRight);
     grid->addWidget(newAngleLabel, 5, 0, Qt::AlignRight);
     grid->addWidget(jointIndexLabel, 6, 0, Qt::AlignRight);
-    grid->addWidget(addButton, 7, 1);
-    grid->addWidget(cancelButton, 7, 2);
+    grid->addWidget(allAnglesLabel, 7, 0, Qt::AlignRight);
+    grid->addWidget(constTCPlocationCheckBox, 8, 0);
+    grid->addWidget(addButton, 9, 1);
+    grid->addWidget(cancelButton, 9, 2);
 
     setLayout(grid);
 
@@ -96,34 +113,59 @@ void AddActionDialog::typeChanged(int index)
         break;
     case SINGLE:
         enabledEdits.push_back(jointIndexEdit);
+        [[clang::fallthrough]];
     case GRIPPER:
         enabledEdits.push_back(newAngleEdit);
+        break;
+    case ALL_ANGLES:
+        enabledEdits.push_back(allAnglesEdit);
         break;
     }
 
     disableAll();
     for(QLineEdit * l : enabledEdits)
-        l->setEnabled(true);
+    {
+        l->show();
+        qDebug() << "show";
+    }
 }
 
 void AddActionDialog::enableAll()
 {
-    startPointEdit->setDisabled(false);
-    midPointEdit->setDisabled(false);
-    endPointEdit->setDisabled(false);
-    timeEdit->setDisabled(false);
-    newAngleEdit->setDisabled(false);
-    jointIndexEdit->setDisabled(false);
+    startPointEdit->show();
+    midPointEdit->show();
+    endPointEdit->show();
+    timeEdit->show();
+    newAngleEdit->show();
+    jointIndexEdit->show();
+    allAnglesEdit->show();
+    startPointLabel->show();
+    midPointLabel->show();
+    endPointLabel->show();
+    timeLabel->show();
+    newAngleLabel->show();
+    jointIndexLabel->show();
+    allAnglesLabel->show();
+    constTCPlocationCheckBox->show();
 }
 
 void AddActionDialog::disableAll()
 {
-    startPointEdit->setDisabled(true);
-    midPointEdit->setDisabled(true);
-    endPointEdit->setDisabled(true);
-    timeEdit->setDisabled(true);
-    newAngleEdit->setDisabled(true);
-    jointIndexEdit->setDisabled(true);
+    startPointEdit->hide();
+    midPointEdit->hide();
+    endPointEdit->hide();
+    timeEdit->hide();
+    newAngleEdit->hide();
+    jointIndexEdit->hide();
+    allAnglesEdit->hide();
+    startPointLabel->hide();
+    midPointLabel->hide();
+    endPointLabel->hide();
+    timeLabel->hide();
+    newAngleLabel->hide();
+    jointIndexLabel->hide();
+    allAnglesLabel->hide();
+    constTCPlocationCheckBox->hide();
 }
 
 void AddActionDialog::setType(ActionType type)
@@ -180,13 +222,6 @@ void AddActionDialog::addClicked()
     {
         QString txt = enabledEdits[i]->text();
         txt = txt.toUpper();
-
-        /*if(txt.at(0) == "P" && !pointList->containsName(txt))
-        {
-            qDebug() << "error: AddActionDialog::addClicked() : punkt " << txt << " nie istnieje";
-            return;
-        }*/
-
         info += enabledEdits[i]->text();
 
         if(i < static_cast<int>(enabledEdits.size()) - 1)
@@ -195,6 +230,85 @@ void AddActionDialog::addClicked()
 
     info = info.toUpper();
 
+    ActionType type = stringToActionType(typeList->currentText());
+    if(type == SINGLE)
+    {
+        if(constTCPlocationCheckBox->isChecked())
+            info += ",1";
+        else
+            info += ",0";
+    }
+
     emit addValues(stringToActionType(typeList->currentText()), info);
     accept();
+}
+
+bool AddActionDialog::eventFilter(QObject *object, QEvent *event)
+{
+    if(event->type() == QEvent::Show)
+    {
+        if(object == startPointEdit)
+        {
+            startPointLabel->show();
+        }
+        else if(object == midPointEdit)
+        {
+            midPointLabel->show();
+        }
+        else if(object == endPointEdit)
+        {
+            endPointLabel->show();
+        }
+        else if(object == timeEdit)
+        {
+            timeLabel->show();
+        }
+        else if(object == newAngleEdit)
+        {
+            newAngleLabel->show();
+            constTCPlocationCheckBox->show();
+        }
+        else if(object == jointIndexEdit)
+        {
+            jointIndexLabel->show();
+        }
+        else if(object == allAnglesEdit)
+        {
+            allAnglesLabel->show();
+        }
+    }
+    else if(event->type() == QEvent::Hide)
+    {
+        if(object == startPointEdit)
+        {
+            startPointLabel->hide();
+        }
+        else if(object == midPointEdit)
+        {
+            midPointLabel->hide();
+        }
+        else if(object == endPointEdit)
+        {
+            endPointLabel->hide();
+        }
+        else if(object == timeEdit)
+        {
+            timeLabel->hide();
+        }
+        else if(object == newAngleEdit)
+        {
+            newAngleLabel->hide();
+            constTCPlocationCheckBox->hide();
+        }
+        else if(object == jointIndexEdit)
+        {
+            jointIndexLabel->hide();
+        }
+        else if(object == allAnglesEdit)
+        {
+            allAnglesLabel->hide();
+        }
+    }
+
+    return true;
 }

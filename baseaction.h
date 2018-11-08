@@ -59,9 +59,11 @@ public:
     virtual bool calculate(Robot & robot);
     virtual void execute();
     virtual int size();
+    virtual void clear();
 
 public slots:
     void calcSlot(Robot * robot);
+    void moveToParentThread();
 
 signals:
     void calculationsFinished();
@@ -88,6 +90,7 @@ public:
 
     virtual bool calculate(Robot & robot);
     virtual void execute();
+    virtual void clear();
 
     void lerp(Lista<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> & path);
     virtual int size();
@@ -109,6 +112,7 @@ public:
 
     virtual bool calculate(Robot & robot);
     virtual void execute();
+    virtual void clear();
 };
 
 class ArchMovAction : public BaseAction
@@ -130,8 +134,8 @@ public:
     ~ArchMovAction();
 
     virtual bool calculate(Robot & robot);
-
     virtual void execute();
+    virtual void clear();
 
 };
 
@@ -152,16 +156,22 @@ public:
     virtual void execute()
     {
     }
+
+    virtual void clear()
+    {
+
+    }
 };
 
 class SetSingleJointAction : public BaseAction
 {
     int joint,
         angleDeg;
+    bool constTCPlocationFlag;
     Lista<Lista<int>> pathInServoDegs;
 
 public:
-    SetSingleJointAction(int j, int deg,
+    SetSingleJointAction(int j, int deg, bool TCP,
                          SerialPort * port,
                          Flags * flags);
     ~SetSingleJointAction();
@@ -169,6 +179,7 @@ public:
     virtual bool calculate(Robot & robot);
     virtual void execute();
     virtual int size();
+    virtual void clear();
 };
 
 class ConstTCPOrientAction : public BaseAction
@@ -189,9 +200,10 @@ public:
 
     virtual bool calculate(Robot & robot);
     virtual void execute();
-
-    void lerp(Lista<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> & path);
     virtual int size();
+    virtual void clear();
+    void lerp(Lista<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> & path);
+
 };
 
 class GripperAction : public BaseAction
@@ -206,6 +218,23 @@ public:
 
     virtual bool calculate(Robot & robot);
     virtual void execute();
-
     virtual int size();
+    virtual void clear();
+};
+
+class setAllAnglesAction : public BaseAction
+{
+    Lista<int> angles;
+    Lista<int> servoDegs;
+
+public:
+    setAllAnglesAction(Lista<int>,
+                       SerialPort*,
+                       Flags*);
+    ~setAllAnglesAction();
+
+    virtual bool calculate(Robot & robot);
+    virtual void execute();
+    virtual int size();
+    virtual void clear();
 };

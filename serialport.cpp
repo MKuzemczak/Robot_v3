@@ -74,6 +74,8 @@ bool SerialPort::isConnected()
         connected = true;
     }
 
+    delete errors;
+    delete comstat;
     return connected;
 }
 

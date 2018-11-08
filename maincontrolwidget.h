@@ -7,6 +7,7 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QSlider>
+#include <QCheckBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -15,6 +16,7 @@
 #include "fixedgridlayout.h"
 #include "lista.h"
 #include "program.h"
+#include "actiontype.h"
 
 class MainControlWidget : public QWidget
 {
@@ -34,9 +36,11 @@ class MainControlWidget : public QWidget
                 * drawBackButton,
                 * setButton,
                 * toListButton,
-                * setToBaseButton;
+                * setToBaseButton,
+                * gripperToActionsButton,
+                * anglesToActionsButton;
 
-
+    QCheckBox * loopCheckBox;
 
     QLineEdit * xEdit,
                 * yEdit,
@@ -86,6 +90,8 @@ signals:
     void drawBackPressed();
     void drawBackReleased();
     void sliderChanged(int, int);
+    void gripperToActions(ActionType, QString);
+    void anglesToActions(ActionType, QString);
 
 public slots:
     void emitSet();
@@ -97,6 +103,8 @@ public slots:
     void setRunningDiodeOff();
     void handleSliderAction();
     void updateSliders();
+    void emitGripperToActions();
+    void emitAnglesToActions();
 
 };
 

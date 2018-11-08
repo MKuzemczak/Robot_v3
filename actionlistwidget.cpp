@@ -3,6 +3,7 @@
 ActionListWidget::ActionListWidget(QWidget *parent) : QWidget(parent)
 {
     table = new QTableWidget(this);
+    table->verticalHeader()->setSectionsMovable(true);
 
     table->setColumnCount(2);
 
@@ -30,6 +31,7 @@ ActionListWidget::ActionListWidget(QWidget *parent) : QWidget(parent)
 
     connect(addButton, SIGNAL(clicked()), this, SLOT(openAddDialog()));
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(deleteCurrentAction()));
+    connect(table->verticalHeader(), SIGNAL(sectionMoved(int,int,int)), this, SIGNAL(actionMoved(int, int, int)));
 
     setMaximumWidth(300);
 }
@@ -47,12 +49,10 @@ void ActionListWidget::addAction(ActionType type, QString info)
         }
     }
 
-    emit actionAdded(type, info);
 
     int rowCount = table->rowCount();
 
     table->setRowCount(rowCount+1);
-
     table->setItem(rowCount, 0, new QTableWidgetItem(actionTypeToString(type)));
     table->setItem(rowCount, 1, new QTableWidgetItem(info));
 
@@ -66,7 +66,9 @@ void ActionListWidget::addAction(ActionType type, QString info)
     table->setVerticalHeaderItem(rowCount, new QTableWidgetItem(QString("%1").arg(rowCount)));
 
     if(rowCount%2 == 0)
-        table->verticalHeaderItem(rowCount)->setBackgroundColor(QColor(0,0,0,10));
+        table->verticalHeaderItem(rowCount)->setBackgroundColor(QColor(0,0,0,10));\
+
+    emit actionAdded(type, info);
 }
 
 void ActionListWidget::deleteAction()
@@ -124,4 +126,19 @@ void ActionListWidget::deleteCurrentAction()
     {
         table->removeRow(i);
     }
+}
+
+int ActionListWidget::size()
+{
+    return table->rowCount();
+}
+
+QString ActionListWidget::getActionInfo(int i)
+{
+    return table->item(i, 1)->text();
+}
+
+ActionType ActionListWidget::getActionType(int i)
+{
+    return stringToActionType(table->item(i, 0)->text());
 }

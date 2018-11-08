@@ -69,3 +69,9 @@ int GripperAction::size()
 {
     return 0;
 }
+
+void GripperAction::clear()
+{
+    resetCalculated();
+    resetDone();
+}

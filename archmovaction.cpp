@@ -29,3 +29,9 @@ void ArchMovAction::execute()
 {
 
 }
+
+void ArchMovAction::clear()
+{
+    resetCalculated();
+    resetDone();
+}

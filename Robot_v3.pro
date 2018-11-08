@@ -37,7 +37,8 @@ SOURCES += \
     fixedgridlayout.cpp \
     terminal.cpp \
     archmovaction.cpp \
-    joystick.cpp
+    joystick.cpp \
+    setallanglesaction.cpp
 
 HEADERS += \
     gui.h \

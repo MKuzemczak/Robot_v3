@@ -81,6 +81,8 @@ public slots:
     void setJointAngleDeg(int, int);
     void setGripper(int);
     void setRobotToBase();
+    void moveAction(int, int, int);
+    void toggleLoopFlag(bool);
 };
 
 #endif // PROGRAM_H

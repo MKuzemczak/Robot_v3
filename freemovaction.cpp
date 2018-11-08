@@ -33,4 +33,10 @@ void FreeMovAction::execute()
 
 }
 
+void FreeMovAction::clear()
+{
+    destInServoDegs.clear();
+    resetCalculated();
+    resetDone();
+}
 

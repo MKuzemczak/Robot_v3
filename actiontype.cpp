@@ -28,6 +28,9 @@ QString actionTypeToString(ActionType type)
     case GRIPPER:
         return QString("Chwytak");
         break;
+    case ALL_ANGLES:
+        return QString("Wszystkie kąty");
+        break;
     }
     return QString();
 }
@@ -50,4 +53,6 @@ ActionType stringToActionType(QString s)
         return CONST_STRAIGHT;
     else if(s == "Chwytak")
         return GRIPPER;
+    else if(s == "Wszystkie kąty")
+        return ALL_ANGLES;
 }

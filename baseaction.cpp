@@ -104,3 +104,13 @@ QThread * BaseAction::getParentThreadPtr()
 {
     return parentThreadPtr;
 }
+
+void BaseAction::clear()
+{
+
+}
+
+void BaseAction::moveToParentThread()
+{
+    moveToThread(parentThreadPtr);
+}

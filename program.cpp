@@ -8,32 +8,28 @@ Program::Program()
     else std::cout << "ERROR, check port name";
 
     flags = new Flags(this);
-
     com = new SerialCommunicatorThread(arduinoPort, flags);
-
     connect(com, SIGNAL(bufferReadyToRead(std::string)), this, SLOT(print(std::string)));
-
     com->start();
-
     manager = new ActionManager(flags, arduinoPort, this);
 
     if(arduinoPort->isConnected())
     {
         *arduinoPort << "A";
-
         QThread::msleep(3000);
-
         emit portConnected();
     }
 
     std::cout << "Program::Program() : koniec" << std::endl;
-
     joystick = new Joystick(&robot, flags, arduinoPort, this);
 
     connect(flags, SIGNAL(movFinReceived()), manager, SLOT(nextStep()));
     connect(com, SIGNAL(portDisconnected()), this, SIGNAL(portDisconnected()));
     connect(com, SIGNAL(portConnected()), this, SIGNAL(portConnected()));
 
+    connect(manager, SIGNAL(finished()), this, SIGNAL(stopped()));
+    connect(manager, SIGNAL(finished()), this, SLOT(stop()));
+    connect(manager, SIGNAL(stepped()), this, SIGNAL(anglesChanged()));
     connect(manager, SIGNAL(writeToTerminal(QString)), this, SIGNAL(writeToTerminal(QString)));
     connect(manager, SIGNAL(writeToTerminal(int)), this, SIGNAL(writeToTerminal(int)));
     connect(manager, SIGNAL(writeToTerminal(double)), this, SIGNAL(writeToTerminal(double)));
@@ -112,9 +108,9 @@ void Program::testRun()
     v1 << 150, 50, 0;
 
     manager->addConstTCPOrientAction(robotBase, v0);
-    manager->addSetSingleJointAction(4, -150);
+    manager->addSetSingleJointAction(4, -150, true);
     manager->addConstTCPOrientAction(v0, v1);
-    manager->addSetSingleJointAction(4, -179);
+    manager->addSetSingleJointAction(4, -179, true);
     manager->addGripperAction(400);
     v0 << 150, -30, 0;
     manager->addConstTCPOrientAction(v1, v0);
@@ -128,7 +124,7 @@ void Program::testRun()
     manager->addConstTCPOrientAction(v1, v0);
     v1 << 150, 50, 0;
     manager->addConstTCPOrientAction(v0, v1);
-    manager->addSetSingleJointAction(4, -90);
+    manager->addSetSingleJointAction(4, -90, true);
     manager->addStraightLineMovAction(v1, robotBase);
 
 
@@ -197,14 +193,26 @@ void Program::addAction(ActionType type, QString info)
     {
         int joint = s.at(0).toInt(),
                 angle = s.at(1).toInt();
+        bool constTCPlocation = s.at(2).toInt();
 
         qDebug() << "Angle: " << angle;
 
-        manager->addSetSingleJointAction(joint, angle);
+        manager->addSetSingleJointAction(joint, angle, constTCPlocation);
     }
     else if (type == GRIPPER)
     {
         manager->addGripperAction(s.at(0).toInt());
+    }
+    else if (type == ALL_ANGLES)
+    {
+        Lista<int> angles;
+
+        for(int i = 0; i < static_cast<int>(s.size()); i++)
+        {
+            angles.push_back(s.at(i).toInt());
+        }
+
+        manager->addSetAllAnglesAction(angles);
     }
 }
 
@@ -219,6 +227,7 @@ void Program::startSequence()
 void Program::stop()
 {
     flags->set(STOP);
+    manager->stop();
     emit writeToTerminal("Program - stop");
     emit stopped();
     emit robotSet(static_cast<int>(robot.getTCPlocation()[0]),
@@ -234,20 +243,17 @@ bool Program::isSerialConnected()
 
 void Program::scanConfig()
 {
-    QFile data("robotConfig.dat");
+    QFile data("save/robotConfig.dat");
 
     if(data.open(QFile::ReadOnly))
     {
         QTextStream strm(&data);
-
         QStringList slist0, slist1;
-
         QString line;
 
         while(!strm.atEnd())
         {
             line = strm.readLine();
-
             slist0 = line.split(",");
 
             for(int i = 1; i < slist0.size(); i++)
@@ -297,7 +303,6 @@ void Program::scanConfig()
                     {
                         robot.setThetaDeg(slist1[0].toInt(),
                                 slist1[1].toDouble());
-
                         robot.setJointBaseThetaDeg(slist1[0].toInt(),
                                 slist1[1].toDouble());
                     }
@@ -310,7 +315,6 @@ void Program::scanConfig()
                     }
                     else
                     {
-                        qDebug() << "servo addeded";
                         robot.addJointServoMinMax(slist1[0].toInt(),
                                 slist1[1].toInt(),
                                 slist1[2].toInt());
@@ -478,6 +482,22 @@ void Program::setRobotToBase()
     emit robotSet(static_cast<int>(robot.getTCPlocation()[0]),
             static_cast<int>(robot.getTCPlocation()[1]),
             static_cast<int>(robot.getTCPlocation()[2]));
+    emit anglesChanged();
+}
+
+void Program::moveAction(int /*i*/, int oldI, int newI)
+{
+    manager->moveAction(oldI, newI);
+    qDebug() << "Program: kolejność zmieniona";
+    emit writeToTerminal("Kolejność akcji zmieniona");
+}
+
+void Program::toggleLoopFlag(bool b)
+{
+    if(b)
+        flags->set(LOOP);
+    else
+        flags->reset(LOOP);
 }
 
 Program::~Program()

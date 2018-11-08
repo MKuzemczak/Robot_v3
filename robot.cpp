@@ -194,7 +194,7 @@ bool Robot::jacobAlgStep(double param, int startJoint, int endJoint, int setJoin
         return true;
     }
 
-    if (startJoint >= endJoint)
+    if (startJoint > endJoint)
     {
         qDebug("Error Robot::jacobAlgStep(...):"
                " poczatkowy indeks zakresu zmienianych przegubow"

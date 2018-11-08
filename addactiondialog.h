@@ -9,6 +9,8 @@
 #include <QGridLayout>
 #include <QVBoxLayout>
 #include <QComboBox>
+#include <QEvent>
+#include <QCheckBox>
 
 #include "actiontype.h"
 #include "pointlistwidget.h"
@@ -25,14 +27,18 @@ class AddActionDialog : public QDialog
                 * endPointEdit,
                 * timeEdit,
                 * newAngleEdit,
-                * jointIndexEdit;
+                * jointIndexEdit,
+                * allAnglesEdit;
 
     QLabel * startPointLabel,
             * midPointLabel,
             * endPointLabel,
             * timeLabel,
             * newAngleLabel,
-            * jointIndexLabel;
+            * jointIndexLabel,
+            * allAnglesLabel;
+
+    QCheckBox * constTCPlocationCheckBox;
 
     QPushButton * addButton, * cancelButton;
 
@@ -57,6 +63,9 @@ public:
     {
         pointList = ptr;
     }
+
+    bool eventFilter(QObject *object, QEvent *event);
+
 signals:
     void addValues(ActionType type, QString info);
 

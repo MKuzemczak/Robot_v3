@@ -37,9 +37,9 @@ QGroupBox * MainControlWidget::createPointMovBox()
     toListButton = new QPushButton("Dodaj do listy", this);
     setToBaseButton = new QPushButton("Do bazy", this);
 
-    setButton->setMaximumWidth(100);
-    toListButton->setMaximumWidth(100);
-    setToBaseButton->setMaximumWidth(100);
+    setButton->setMaximumSize(100, 20);
+    toListButton->setMaximumSize(100, 20);
+    setToBaseButton->setMaximumSize(100, 20);
 
     connect(setButton, SIGNAL(clicked()), this, SLOT(emitSet()));
     connect(this, SIGNAL(set(int, int, int)), program, SLOT(setRobot(int, int, int)));
@@ -109,14 +109,14 @@ QGroupBox * MainControlWidget::createButtonMovBox()
     aheadButton = new QPushButton("Pchaj", this);
     drawBackButton = new QPushButton("Cofaj", this);
 
-    upButton->setMaximumWidth(100);
-    downButton->setMaximumWidth(100);
-    leftButton->setMaximumWidth(100);
-    rightButton->setMaximumWidth(100);
-    frontButton->setMaximumWidth(100);
-    rearButton->setMaximumWidth(100);
-    aheadButton->setMaximumWidth(100);
-    drawBackButton->setMaximumWidth(100);
+    upButton->setMaximumSize(100, 20);
+    downButton->setMaximumSize(100, 20);
+    leftButton->setMaximumSize(100, 20);
+    rightButton->setMaximumSize(100, 20);
+    frontButton->setMaximumSize(100, 20);
+    rearButton->setMaximumSize(100, 20);
+    aheadButton->setMaximumSize(100, 20);
+    drawBackButton->setMaximumSize(100, 20);
 
     connect(upButton, SIGNAL(pressed()), program->joystick, SLOT(startUp()));
     connect(upButton, SIGNAL(released()), program, SLOT(stop()));
@@ -169,20 +169,27 @@ QGroupBox * MainControlWidget::createSequenceControlBox()
 
     runButton = new QPushButton("Start", this);
     stopButton = new QPushButton("Stop", this);
+    loopCheckBox = new QCheckBox("Powtarzaj", this);
 
     connect(runButton, SIGNAL(clicked()), program, SLOT(startSequence()));
     connect(stopButton, SIGNAL(clicked()), program, SLOT(stop()));
+    connect(loopCheckBox, SIGNAL(clicked(bool)), program, SLOT(toggleLoopFlag(bool)));
 
-    runButton->setMaximumWidth(100);
-    stopButton->setMaximumWidth(100);
+    runButton->setMaximumSize(100, 20);
+    stopButton->setMaximumSize(100, 20);
 
     QHBoxLayout * hbox = new QHBoxLayout;
 
     hbox->addWidget(runButton);
     hbox->addWidget(stopButton);
 
-    box->setLayout(hbox);
-    box->setMaximumSize(500, 100);
+    QVBoxLayout * vbox = new QVBoxLayout;
+
+    vbox->addWidget(loopCheckBox);
+    vbox->addItem(hbox);
+
+    box->setLayout(vbox);
+    box->setMaximumSize(500, 200);
 
     return box;
 
@@ -191,8 +198,8 @@ QGroupBox * MainControlWidget::createSequenceControlBox()
 QGroupBox * MainControlWidget::createSliderBox()
 {
     int dof = program->getRobotDOF();
-
     QGridLayout * grid = new QGridLayout;
+    QHBoxLayout *hbox = new QHBoxLayout;
 
     for(int i = 0; i < dof; i++)
     {
@@ -218,14 +225,21 @@ QGroupBox * MainControlWidget::createSliderBox()
 
     }
 
+
+    anglesToActionsButton = new QPushButton("Do akcji", this);
+    anglesToActionsButton->setMaximumSize(100, 20);
+    hbox->addWidget(anglesToActionsButton, Qt::AlignLeft);
+    grid->addItem(hbox, dof, 0, 1, 5);
+
     connect(this, SIGNAL(sliderChanged(int, int)), program, SLOT(setJointAngleDeg(int, int)));
     connect(program, SIGNAL(anglesChanged()), this, SLOT(updateSliders()));
+    connect(anglesToActionsButton, SIGNAL(clicked()), this, SLOT(emitAnglesToActions()));
 
     QGroupBox * box = new QGroupBox("Przeguby");
 
     box->setLayout(grid);
     box->setMinimumSize(100, dof*40);
-    box->setMaximumSize(400, dof*40);
+    box->setMaximumSize(400, (dof+1)*40);
 
     return box;
 }
@@ -241,10 +255,22 @@ QGroupBox * MainControlWidget::createGripperBox()
 
     connect(gripperSlider, SIGNAL(sliderMoved(int)), program, SLOT(setGripper(int)));
 
+    gripperToActionsButton = new QPushButton("Dodaj akcję", this);
+    gripperToActionsButton->setMaximumSize(100, 20);
+    connect(gripperToActionsButton, SIGNAL(clicked()), this, SLOT(emitGripperToActions()));
+
     QHBoxLayout * hbox = new QHBoxLayout;
     hbox->addWidget(gripperSlider);
-    box->setLayout(hbox);
-    box->setMaximumSize(400, 40);
+
+    QHBoxLayout * hbox1 = new QHBoxLayout;
+    hbox1->addWidget(gripperToActionsButton, Qt::AlignCenter);
+
+    QGridLayout * grid = new QGridLayout;
+    grid->addItem(hbox, 0, 0);
+    grid->addItem(hbox1, 1, 0);
+
+    box->setLayout(grid);
+    box->setMaximumSize(400, 150);
 
     return box;
 }
@@ -312,4 +338,23 @@ void MainControlWidget::updateSliders()
     }
 
     gripperSlider->setValue(program->robot.getGripper());
+}
+
+void MainControlWidget::emitGripperToActions()
+{
+    emit gripperToActions(GRIPPER, QString("%1").arg(gripperSlider->value()));
+}
+
+void MainControlWidget::emitAnglesToActions()
+{
+    QString s;
+
+    for(int i = 0; i < static_cast<int>(sliders.size()); i++)
+    {
+        s += QString("%1").arg(sliders[i]->value());
+        if(i < static_cast<int>(sliders.size()) - 1)
+            s += ",";
+    }
+
+    emit anglesToActions(ALL_ANGLES, s);
 }

@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QGridLayout>
+#include <QEvent>
 
 #include "actiontype.h"
 #include "addactiondialog.h"
@@ -34,10 +35,14 @@ public:
     }
 
     void deleteAction();
+    int size();
+    QString getActionInfo(int);
+    ActionType getActionType(int);
 
 signals:
     void actionAdded(ActionType type, QString info);
     void actionDeleted(int);
+    void actionMoved(int, int, int);
 public slots:
     void addAction(ActionType type, QString info);
     void openAddDialog();

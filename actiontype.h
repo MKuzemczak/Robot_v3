@@ -13,7 +13,8 @@ typedef enum
     DELAY,
     SINGLE,
     CONST_STRAIGHT,
-    GRIPPER
+    GRIPPER,
+    ALL_ANGLES
 } ActionType;
 
 QString actionTypeToString(ActionType type);

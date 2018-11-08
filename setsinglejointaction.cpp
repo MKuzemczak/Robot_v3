@@ -1,8 +1,8 @@
 #include "baseaction.h"
 
-///#define DEBUG_SETSINGLE
+#define DEBUG_SETSINGLE
 
-SetSingleJointAction::SetSingleJointAction(int j, int deg,
+SetSingleJointAction::SetSingleJointAction(int j, int deg, bool TCP,
                                            SerialPort * port,
                                            Flags * flags)
 {
@@ -12,6 +12,8 @@ SetSingleJointAction::SetSingleJointAction(int j, int deg,
     angleDeg = deg;
     setArduinoPortPtr(port);
     setFlagsPtr(flags);
+
+    constTCPlocationFlag = TCP;
 }
 
 SetSingleJointAction::~SetSingleJointAction()
@@ -21,30 +23,40 @@ SetSingleJointAction::~SetSingleJointAction()
 
 bool SetSingleJointAction::calculate(Robot & robot)
 {
-    int currentThetaDeg = static_cast<int>(robot.getJointThetaRad(joint) / DEG_TO_RAD);
-    Eigen::Vector3d constTCPlocation = robot.getTCPlocation();
-
-    for(int i = currentThetaDeg;
-        i != angleDeg;
-        i += (angleDeg - currentThetaDeg)/abs(angleDeg - currentThetaDeg))
+    if(constTCPlocationFlag)
     {
+        int currentThetaDeg = static_cast<int>(robot.getJointThetaRad(joint) / DEG_TO_RAD);
+        Eigen::Vector3d constTCPlocation = robot.getTCPlocation();
+
+        for(int i = currentThetaDeg;
+            i != angleDeg;
+            i += (angleDeg - currentThetaDeg)/abs(angleDeg - currentThetaDeg))
+        {
 #ifdef DEBUG_SETSINGLE
-        qDebug() << "SetSingleJointAction::calculate(), loop, i == " << i;
+            qDebug() << "SetSingleJointAction::calculate(), loop, i == " << i;
 #endif
 
-        robot.setThetaDeg(joint, i);
+            robot.setThetaDeg(joint, i);
 
-        if(!robot.setExcluding(joint, robot.getDOF(), constTCPlocation))
-        {
-            emit calculationsFailed();
-            moveToThread(getParentThreadPtr());
-            return false;
+            if(!robot.setExcluding(joint, robot.getDOF(), constTCPlocation))
+            {
+                emit calculationsFailed();
+                moveToThread(getParentThreadPtr());
+                return false;
+            }
+
+            Lista<int> s;
+
+            robot.mapThetasToServos(s);
+            pathInServoDegs.push_back(s);
         }
-
+    }
+    else
+    {
         Lista<int> s;
 
+        robot.setThetaDeg(joint, angleDeg);
         robot.mapThetasToServos(s);
-
         pathInServoDegs.push_back(s);
     }
 
@@ -66,14 +78,11 @@ void SetSingleJointAction::execute()
 {
     std::string s;
 
-
     s = "B";
 
     for (int j = 0; j < static_cast<int>(pathInServoDegs[0].size()); j++)
     {
         s += std::to_string(pathInServoDegs[0][j]) + "\n";
-
-
     }
 
     s += 'C';
@@ -95,10 +104,21 @@ void SetSingleJointAction::execute()
         setDone();
         resetCalculated();
     }
-
 }
 
 int SetSingleJointAction::size()
 {
     return static_cast<int>(pathInServoDegs.size());
+}
+
+void SetSingleJointAction::clear()
+{
+    for(int i = 0; i < static_cast<int>(pathInServoDegs.size()); i++)
+    {
+        pathInServoDegs[i].clear();
+    }
+
+    pathInServoDegs.clear();
+    resetCalculated();
+    resetDone();
 }

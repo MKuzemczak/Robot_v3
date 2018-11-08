@@ -11,6 +11,8 @@ ActionManager::ActionManager()
     calculationsRunning = false;
     actionCntr = 0;
     robotPtr = nullptr;
+
+    calculationThread.start();
 }
 
 ActionManager::ActionManager(Flags * f, SerialPort * arduino, QObject * parent) :
@@ -25,11 +27,14 @@ ActionManager::ActionManager(Flags * f, SerialPort * arduino, QObject * parent) 
 
     flags = f;
     arduinoPort = arduino;
+
+    calculationThread.start();
 }
 
 
 ActionManager::~ActionManager()
 {
+    calculationThread.quit();
 }
 
 bool ActionManager::start()
@@ -60,6 +65,16 @@ void ActionManager::stop()
 {
     started = false;
     checkCalculations = false;
+    actionCntr = 0;
+    if(calculationsRunning)
+    {
+        QTimer::singleShot(0, currentlyCalculated, SLOT(moveToParentThread));
+    }
+
+    for(int i = 0; i < static_cast<int>(actions.size()); i++)
+    {
+        actions[i]->clear();
+    }
 }
 
 /*
@@ -102,18 +117,36 @@ void ActionManager::nextStep()
 
         if (actions[actionCntr]->isDone())
         {
-            if(actions[((actionCntr < static_cast<int>(actions.size()) - 1) ? (actionCntr + 1) : 0)]->isCalculated())
+            emit stepped();
+            int index;
+            if(actionCntr < static_cast<int>(actions.size()) - 1)
+            {
+                index = actionCntr + 1;
+            }
+            else
+            {
+                if(flags->isSet(LOOP))
+                {
+                    index = 0;
+                }
+                else
+                {
+                    emit finished();
+                    flags->set(STOP);
+                    started = false;
+                    stepInProgress = false;
+                    return;
+                }
+            }
+
+            if(actions[index]->isCalculated())
             {
                 actionCntr++;
                 checkCalculations = true;
 
-                if (flags->isSet(LOOP) && actionCntr == static_cast<int>(actions.size()))
+                if(actionCntr == static_cast<int>(actions.size()))
                 {
                     actionCntr = 0;
-
-#ifdef DEBUG_ACTION_MANAGER
-                    qDebug() << "ActionManager::nextStep() : LOOP";
-#endif
                 }
             }
             else
@@ -181,8 +214,6 @@ void ActionManager::calculations()
 
                 currentlyCalculated = actions[number];
 
-                calculationThread.start();
-
                 if(!flags->isSet(STOP))
                 emit startActionCalculations(robotPtr);
 
@@ -202,8 +233,6 @@ void ActionManager::calculations()
 
 void ActionManager::stopCalculationThreadFinished()
 {
-    calculationThread.quit();
-
     disconnect(currentlyCalculated, SIGNAL(calculationsFinished()), nullptr, nullptr);
     disconnect(this, SIGNAL(startActionCalculations(Robot *)), nullptr, nullptr);
 
@@ -213,8 +242,6 @@ void ActionManager::stopCalculationThreadFinished()
 
 void ActionManager::stopCalculationThreadFailed()
 {
-    calculationThread.quit();
-
     qDebug() << "error: calculations failed in action: ";
     emit writeToTerminal("error: calculations failed in action: ");
     emit writeToTerminal(((actionCntr < static_cast<int>(actions.size()) - 1) ? (actionCntr + 1) : 0));
@@ -232,6 +259,33 @@ void ActionManager::stopCalculationThreadFailed()
 void ActionManager::deleteAction(int i)
 {
     actions.erase(i);
+}
+
+void ActionManager::moveAction(int oldIndex, int newIndex)
+{
+    if(oldIndex == newIndex)
+    {
+        qDebug() << "ActionManager::moveAction() : indeksy takie same.";
+        emit writeToTerminal("Indeksy takie same.");
+        return;
+    }
+
+    if(oldIndex < newIndex)
+    {
+        if(newIndex == static_cast<int>(actions.size()) - 1)
+        {
+            actions.push_back(actions[oldIndex]);
+        }
+        else
+        {
+            actions.insert(actions.iteratorAt(newIndex + 1), actions[oldIndex]);
+        }
+        actions.erase(oldIndex);
+        return;
+    }
+
+    actions.insert(actions.iteratorAt(newIndex), actions[oldIndex]);
+    actions.erase(oldIndex + 1);
 }
 
 ////////////////////////////////////////////////////////// setters & getters & adders
@@ -279,9 +333,9 @@ void ActionManager::addConstTCPOrientAction(Eigen::Vector3d & start,
 #endif
 }
 
-void ActionManager::addSetSingleJointAction(int joint, int thetaDeg)
+void ActionManager::addSetSingleJointAction(int joint, int thetaDeg, bool constTCPlocation)
 {
-    actions.push_back(new SetSingleJointAction(joint, thetaDeg, arduinoPort, flags));
+    actions.push_back(new SetSingleJointAction(joint, thetaDeg, constTCPlocation, arduinoPort, flags));
     actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
     emit writeToTerminal("Akcja ustawienia jednego przegubu dodana");
 }
@@ -291,6 +345,13 @@ void ActionManager::addGripperAction(int set)
     actions.push_back(new GripperAction(set, arduinoPort, flags));
     actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
     emit writeToTerminal("Akcja chwytaka dodana");
+}
+
+void ActionManager::addSetAllAnglesAction(Lista<int> l)
+{
+    actions.push_back(new setAllAnglesAction(l, arduinoPort, flags));
+    actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
+    emit writeToTerminal("Akcja ustawiania wszytskich przegubów dodana");
 }
 
 bool ActionManager::isCheckCalculations()

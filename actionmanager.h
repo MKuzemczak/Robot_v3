@@ -43,19 +43,15 @@ public:
 
     void addStraightLineMovAction(Eigen::Vector3d & start,
                                   Eigen::Vector3d & dest);
-
     void addFreeMovAction(Eigen::Vector3d & dest);
-
     void addArchMovAction(Eigen::Vector3d start,
                           Eigen::Vector3d inter,
                           Eigen::Vector3d dest);
-
     void addConstTCPOrientAction(Eigen::Vector3d & start,
                                  Eigen::Vector3d & dest);
-
-    void addSetSingleJointAction(int joint, int thetaDeg);
-
+    void addSetSingleJointAction(int joint, int thetaDeg, bool constTCPlocation);
     void addGripperAction(int set);
+    void addSetAllAnglesAction(Lista<int>);
 
     bool isCheckCalculations();
 
@@ -79,6 +75,8 @@ public:
         currentlyCalculated = nullptr;
     }
 
+    void moveAction(int, int);
+
 public slots:
     void stopCalculationThreadFinished();
     void stopCalculationThreadFailed();
@@ -95,6 +93,8 @@ signals:
     void writeToTerminal(char const *);
     void writeToTerminal(char);
     void writeToTerminal(std::string);
+    void finished();
+    void stepped();
 
 };
 

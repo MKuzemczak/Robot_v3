@@ -29,10 +29,12 @@ public:
 
 
     int operator () (int point, int index);
-
     bool containsName(QString n);
+    int size();
 
 signals:
+    void pointAdded(int, int, int);
+    void pointDeleted(int);
 
 public slots:
     void selectionChangedSlot(const QItemSelection &, const QItemSelection &);
