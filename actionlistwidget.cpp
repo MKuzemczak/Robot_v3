@@ -66,7 +66,7 @@ void ActionListWidget::addAction(ActionType type, QString info)
     table->setVerticalHeaderItem(rowCount, new QTableWidgetItem(QString("%1").arg(rowCount)));
 
     if(rowCount%2 == 0)
-        table->verticalHeaderItem(rowCount)->setBackgroundColor(QColor(0,0,0,10));\
+        table->verticalHeaderItem(rowCount)->setBackgroundColor(QColor(0,0,0,10));
 
     emit actionAdded(type, info);
 }

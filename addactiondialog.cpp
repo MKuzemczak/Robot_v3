@@ -113,8 +113,9 @@ void AddActionDialog::typeChanged(int index)
         break;
     case SINGLE:
         enabledEdits.push_back(jointIndexEdit);
-        [[clang::fallthrough]];
+        break;
     case GRIPPER:
+        enabledEdits.push_back(jointIndexEdit);
         enabledEdits.push_back(newAngleEdit);
         break;
     case ALL_ANGLES:
@@ -208,10 +209,28 @@ void AddActionDialog::setInfo(QStringList s)
     if(s.size() != static_cast<int>(enabledEdits.size()))
         qDebug() << "error: AddActionDialog::setInfo(QStringList) : QStringList::size() != Lista::size()";
 
-    if(typeList->currentIndex() != SINGLE)
-        enabledEdits[0]->setText(s.at(s.size() - 1));
-    else
+    switch(typeList->currentIndex())
+    {
+    case SINGLE:
         enabledEdits[0]->setText(s.at(0));
+        break;
+    case ALL_ANGLES:
+    {
+        QString s0;
+
+        for(int i = 0; i < s.size(); i++)
+        {
+            s0 += s[i];
+            if(i < s.size() - 1)
+                s0 += ",";
+        }
+
+        enabledEdits[0]->setText(s0);
+    }
+        break;
+    default:
+        enabledEdits[0]->setText(s.at(s.size() - 1));
+    }
 }
 
 void AddActionDialog::addClicked()
@@ -310,5 +329,5 @@ bool AddActionDialog::eventFilter(QObject *object, QEvent *event)
         }
     }
 
-    return true;
+    return false;
 }
