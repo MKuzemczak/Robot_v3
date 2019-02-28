@@ -4,6 +4,7 @@
 
 ConstTCPOrientAction::ConstTCPOrientAction(Eigen::Vector3d start,
                                            Eigen::Vector3d dest,
+                                           int spd,
                                            SerialPort * port,
                                            Flags * flags)
 {
@@ -11,6 +12,7 @@ ConstTCPOrientAction::ConstTCPOrientAction(Eigen::Vector3d start,
 
     starting = start;
     destination = dest;
+    speed = spd;
     setArduinoPortPtr(port);
     setFlagsPtr(flags);
 }
@@ -27,6 +29,11 @@ bool ConstTCPOrientAction::calculate(Robot & robot)
 
     orient = robot.getTCPOrient();
 
+    if(speed != robot.getSpeed())
+    {
+        robot.setSpeed(speed);
+        speedChanged = true;
+    }
 
     lerp(path);
 
@@ -98,7 +105,19 @@ void ConstTCPOrientAction::execute()
     qDebug() << "ConstTCPOrientAction::execute() : start";
 #endif
 
-    if(pathInServoDegs.size() != 0)
+    if(speedChanged)
+    {
+        std::string s;
+
+        s = "F";
+        s += std::to_string(10-speed);
+        s += "\n";
+
+        while (!flags()->isSet(ARDUINO_MOV_FIN)) ;
+        *arduinoPort() << s;
+        speedChanged = false;
+    }
+    else if(pathInServoDegs.size() != 0)
     {
         std::string s;
 

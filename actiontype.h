@@ -14,7 +14,8 @@ typedef enum
     SINGLE,
     CONST_STRAIGHT,
     GRIPPER,
-    ALL_ANGLES
+    ALL_ANGLES,
+    NONE
 } ActionType;
 
 QString actionTypeToString(ActionType type);

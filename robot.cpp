@@ -905,6 +905,15 @@ double Robot::getJointBaseThetaRad(int joint)
     return joints[joint]->getBaseTheta();
 }
 
+void Robot::setSpeed(int spd)
+{
+    servoSpeed = spd;
+}
+
+int Robot::getSpeed()
+{
+    return servoSpeed;
+}
 //////////////////////////////////////////////////////////////////// !setters & getters & adders
 
 

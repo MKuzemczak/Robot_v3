@@ -34,7 +34,11 @@ void Joystick::run()
     {
         if(move && !flags->isSet(STOP))
         {
-            ConstTCPOrientAction action(robot->getTCPlocation(), robot->getTCPlocation() + 5*direction, port, flags);
+            ConstTCPOrientAction action(robot->getTCPlocation(),
+                                        robot->getTCPlocation() + 5*direction,
+                                        9,
+                                        port,
+                                        flags);
 
             if(!flags->isSet(STOP))
             {

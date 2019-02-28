@@ -23,6 +23,7 @@ AddActionDialog::AddActionDialog(QWidget * parent) :
     newAngleEdit = new QLineEdit(this);
     jointIndexEdit = new QLineEdit(this);
     allAnglesEdit = new QLineEdit(this);
+    speedEdit = new QLineEdit(this);
 
     startPointEdit->setPlaceholderText("np.: P1, p2");
     midPointEdit->setPlaceholderText("np.: P1, p2");
@@ -31,6 +32,7 @@ AddActionDialog::AddActionDialog(QWidget * parent) :
     newAngleEdit->setPlaceholderText("np.: 45");
     jointIndexEdit->setPlaceholderText("np.: 0, 1 itd.");
     allAnglesEdit->setPlaceholderText("Kąty oddzielone przecinkami");
+    speedEdit->setPlaceholderText("0-10");
 
     startPointEdit->installEventFilter(this);
     midPointEdit->installEventFilter(this);
@@ -39,6 +41,7 @@ AddActionDialog::AddActionDialog(QWidget * parent) :
     newAngleEdit->installEventFilter(this);
     jointIndexEdit->installEventFilter(this);
     allAnglesEdit->installEventFilter(this);
+    speedEdit->installEventFilter(this);
 
     QRegExpValidator * v = new QRegExpValidator(QRegExp("[pP][0-9]{1,4}"), this);
 
@@ -48,6 +51,7 @@ AddActionDialog::AddActionDialog(QWidget * parent) :
     timeEdit->setValidator(new QIntValidator(1, 1000000, this));
     newAngleEdit->setValidator(new QIntValidator(-180, 600, this));
     jointIndexEdit->setValidator(new QIntValidator(0, 10, this));
+    speedEdit->setValidator(new QIntValidator(0, 10, this));
 
     startPointLabel = new QLabel("Punkt startowy", this);
     midPointLabel = new QLabel("Punkt pośredni", this);
@@ -56,6 +60,7 @@ AddActionDialog::AddActionDialog(QWidget * parent) :
     newAngleLabel = new QLabel("Nowy kąt", this);
     jointIndexLabel = new QLabel("Przegub", this);
     allAnglesLabel = new QLabel("Kąty", this);
+    speedLabel = new QLabel("Prędkość", this);
 
     constTCPlocationCheckBox = new QCheckBox("Stałe położenie TCP", this);
 
@@ -75,6 +80,7 @@ AddActionDialog::AddActionDialog(QWidget * parent) :
     grid->addWidget(newAngleEdit, 5, 1, 1, 2);
     grid->addWidget(jointIndexEdit, 6, 1, 1, 2);
     grid->addWidget(allAnglesEdit, 7, 1, 1, 2);
+    grid->addWidget(speedEdit, 8, 1, 1, 2);
     grid->addWidget(startPointLabel, 1, 0, Qt::AlignRight);
     grid->addWidget(midPointLabel, 2, 0, Qt::AlignRight);
     grid->addWidget(endPointLabel, 3, 0, Qt::AlignRight);
@@ -82,9 +88,10 @@ AddActionDialog::AddActionDialog(QWidget * parent) :
     grid->addWidget(newAngleLabel, 5, 0, Qt::AlignRight);
     grid->addWidget(jointIndexLabel, 6, 0, Qt::AlignRight);
     grid->addWidget(allAnglesLabel, 7, 0, Qt::AlignRight);
-    grid->addWidget(constTCPlocationCheckBox, 8, 0);
-    grid->addWidget(addButton, 9, 1);
-    grid->addWidget(cancelButton, 9, 2);
+    grid->addWidget(speedLabel, 8, 0, Qt::AlignRight);
+    grid->addWidget(constTCPlocationCheckBox, 9, 0);
+    grid->addWidget(addButton, 10, 1);
+    grid->addWidget(cancelButton, 10, 2);
 
     setLayout(grid);
 
@@ -102,17 +109,20 @@ void AddActionDialog::typeChanged(int index)
     case CONST_STRAIGHT:
         enabledEdits.push_back(startPointEdit);
         enabledEdits.push_back(endPointEdit);
+        enabledEdits.push_back(speedEdit);
         break;
     case ARCH:
         enabledEdits.push_back(startPointEdit);
         enabledEdits.push_back(midPointEdit);
         enabledEdits.push_back(endPointEdit);
+        enabledEdits.push_back(speedEdit);
         break;
     case DELAY:
         enabledEdits.push_back(timeEdit);
         break;
     case SINGLE:
         enabledEdits.push_back(jointIndexEdit);
+        enabledEdits.push_back(speedEdit);
         break;
     case GRIPPER:
         enabledEdits.push_back(jointIndexEdit);
@@ -120,6 +130,7 @@ void AddActionDialog::typeChanged(int index)
         break;
     case ALL_ANGLES:
         enabledEdits.push_back(allAnglesEdit);
+        enabledEdits.push_back(speedEdit);
         break;
     }
 
@@ -140,6 +151,7 @@ void AddActionDialog::enableAll()
     newAngleEdit->show();
     jointIndexEdit->show();
     allAnglesEdit->show();
+    speedEdit->show();
     startPointLabel->show();
     midPointLabel->show();
     endPointLabel->show();
@@ -147,6 +159,7 @@ void AddActionDialog::enableAll()
     newAngleLabel->show();
     jointIndexLabel->show();
     allAnglesLabel->show();
+    speedLabel->show();
     constTCPlocationCheckBox->show();
 }
 
@@ -159,6 +172,7 @@ void AddActionDialog::disableAll()
     newAngleEdit->hide();
     jointIndexEdit->hide();
     allAnglesEdit->hide();
+    speedEdit->hide();
     startPointLabel->hide();
     midPointLabel->hide();
     endPointLabel->hide();
@@ -166,6 +180,7 @@ void AddActionDialog::disableAll()
     newAngleLabel->hide();
     jointIndexLabel->hide();
     allAnglesLabel->hide();
+    speedLabel->hide();
     constTCPlocationCheckBox->hide();
 }
 
@@ -213,20 +228,28 @@ void AddActionDialog::setInfo(QStringList s)
     {
     case SINGLE:
         enabledEdits[0]->setText(s.at(0));
+        enabledEdits[static_cast<int>(enabledEdits.size()) - 1]->setText(s[s.size() - 1]);
         break;
     case ALL_ANGLES:
     {
         QString s0;
 
-        for(int i = 0; i < s.size(); i++)
+        for(int i = 0; i < s.size() - 1; i++)
         {
             s0 += s[i];
-            if(i < s.size() - 1)
+            if(i < s.size() - 2)
                 s0 += ",";
         }
 
         enabledEdits[0]->setText(s0);
+        enabledEdits[1]->setText(s[s.size() - 1]);
     }
+        break;
+    case STRAIGHT_LINE:
+    case FREE:
+    case CONST_STRAIGHT:
+        enabledEdits[0]->setText(s.at(s.size() - 2));
+        enabledEdits[static_cast<int>(enabledEdits.size()) - 1]->setText(s[s.size() - 1]);
         break;
     default:
         enabledEdits[0]->setText(s.at(s.size() - 1));
@@ -295,6 +318,10 @@ bool AddActionDialog::eventFilter(QObject *object, QEvent *event)
         {
             allAnglesLabel->show();
         }
+        else if(object == speedEdit)
+        {
+            speedLabel->show();
+        }
     }
     else if(event->type() == QEvent::Hide)
     {
@@ -326,6 +353,10 @@ bool AddActionDialog::eventFilter(QObject *object, QEvent *event)
         else if(object == allAnglesEdit)
         {
             allAnglesLabel->hide();
+        }
+        else if(object == speedEdit)
+        {
+            speedLabel->hide();
         }
     }
 

@@ -133,12 +133,20 @@ int ActionListWidget::size()
     return table->rowCount();
 }
 
-QString ActionListWidget::getActionInfo(int i)
+QString ActionListWidget::getActionInfo(int index)
 {
-    return table->item(i, 1)->text();
+    for(int i = 0; i < table->rowCount(); i++)
+        if(table->visualRow(i) == index)
+            return table->item(i, 1)->text();
+
+    return QString("");
 }
 
-ActionType ActionListWidget::getActionType(int i)
+ActionType ActionListWidget::getActionType(int index)
 {
-    return stringToActionType(table->item(i, 0)->text());
+    for(int i = 0; i < table->rowCount(); i++)
+        if(table->visualRow(i) == index)
+            return stringToActionType(table->item(i, 0)->text());
+
+    return NONE;
 }

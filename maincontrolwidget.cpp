@@ -1,6 +1,7 @@
 #include "maincontrolwidget.h"
 
-MainControlWidget::MainControlWidget(Program * pr, QWidget *parent) :
+MainControlWidget::MainControlWidget(Program * pr,
+                                     QWidget *parent) :
     QWidget(parent),
     program(pr)
 {
@@ -222,13 +223,12 @@ QGroupBox * MainControlWidget::createSliderBox()
         grid->addWidget(sliders[i], i, 2);
         grid->addWidget(sliderLabels[i*3 + 2], i, 3);
         grid->addWidget(sliderLineEdits[i], i, 4);
-
     }
 
 
     anglesToActionsButton = new QPushButton("Do akcji", this);
-    anglesToActionsButton->setMaximumSize(100, 20);
-    hbox->addWidget(anglesToActionsButton, Qt::AlignLeft);
+    anglesToActionsButton->setFixedSize(100, 20);
+    hbox->addWidget(anglesToActionsButton);
     grid->addItem(hbox, dof, 0, 1, 5);
 
     connect(this, SIGNAL(sliderChanged(int, int)), program, SLOT(setJointAngleDeg(int, int)));
@@ -352,9 +352,10 @@ void MainControlWidget::emitAnglesToActions()
     for(int i = 0; i < static_cast<int>(sliders.size()); i++)
     {
         s += QString("%1").arg(sliders[i]->value());
-        if(i < static_cast<int>(sliders.size()) - 1)
-            s += ",";
+        s += ",";
     }
+
+    s += QString::number(program->robot.getSpeed());
 
     emit anglesToActions(ALL_ANGLES, s);
 }

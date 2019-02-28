@@ -28,7 +28,8 @@ class AddActionDialog : public QDialog
                 * timeEdit,
                 * newAngleEdit,
                 * jointIndexEdit,
-                * allAnglesEdit;
+                * allAnglesEdit,
+                * speedEdit;
 
     QLabel * startPointLabel,
             * midPointLabel,
@@ -36,7 +37,8 @@ class AddActionDialog : public QDialog
             * timeLabel,
             * newAngleLabel,
             * jointIndexLabel,
-            * allAnglesLabel;
+            * allAnglesLabel,
+            * speedLabel;
 
     QCheckBox * constTCPlocationCheckBox;
 

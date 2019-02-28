@@ -1,10 +1,12 @@
 #include "baseaction.h"
 
 FreeMovAction::FreeMovAction(Eigen::Vector3d dest,
+                             int spd,
                              SerialPort * port,
                              Flags * flags)
 {
     destination = dest;
+    speed = spd;
     setArduinoPortPtr(port);
     setFlagsPtr(flags);
 

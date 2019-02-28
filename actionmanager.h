@@ -42,16 +42,24 @@ public:
     int size();
 
     void addStraightLineMovAction(Eigen::Vector3d & start,
-                                  Eigen::Vector3d & dest);
-    void addFreeMovAction(Eigen::Vector3d & dest);
+                                  Eigen::Vector3d & dest,
+                                  int spd);
+    void addFreeMovAction(Eigen::Vector3d & dest,
+                          int spd);
     void addArchMovAction(Eigen::Vector3d start,
                           Eigen::Vector3d inter,
-                          Eigen::Vector3d dest);
+                          Eigen::Vector3d dest,
+                          int spd);
     void addConstTCPOrientAction(Eigen::Vector3d & start,
-                                 Eigen::Vector3d & dest);
-    void addSetSingleJointAction(int joint, int thetaDeg, bool constTCPlocation);
+                                 Eigen::Vector3d & dest,
+                                 int spd);
+    void addSetSingleJointAction(int joint,
+                                 int thetaDeg,
+                                 int spd,
+                                 bool constTCPlocation);
     void addGripperAction(int set);
-    void addSetAllAnglesAction(Lista<int>);
+    void addSetAllAnglesAction(Lista<int>,
+                               int spd);
 
     bool isCheckCalculations();
 

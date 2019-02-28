@@ -2,10 +2,12 @@
 
 
 setAllAnglesAction::setAllAnglesAction(Lista<int> l,
-                   SerialPort* sptr,
-                   Flags* fptr)
+                                       int spd,
+                                       SerialPort* sptr,
+                                       Flags* fptr)
 {
     angles = l;
+    speed = spd;
     setArduinoPortPtr(sptr);
     setFlagsPtr(fptr);
 }
@@ -17,6 +19,12 @@ setAllAnglesAction::~setAllAnglesAction()
 
 bool setAllAnglesAction::calculate(Robot & robot)
 {
+    if(speed != robot.getSpeed())
+    {
+        robot.setSpeed(speed);
+        speedChanged = true;
+    }
+
     for(int i = 0; i < static_cast<int>(angles.size()); i++)
     {
         robot.setThetaDeg(i, angles[i]);
@@ -42,6 +50,17 @@ void setAllAnglesAction::execute()
 {
     std::string s;
 
+    if(speedChanged)
+    {
+        s = "F";
+        s += std::to_string(10-speed);
+        s += "\n";
+
+        while (!flags()->isSet(ARDUINO_MOV_FIN)) ;
+        *arduinoPort() << s;
+        speedChanged = false;
+    }
+
     s = "B";
 
     for (int j = 0; j < static_cast<int>(servoDegs.size()); j++)
@@ -51,10 +70,10 @@ void setAllAnglesAction::execute()
 
     s += 'C';
 
-    qDebug() << s.c_str();
-
     while (!flags()->isSet(ARDUINO_MOV_FIN)) ;
 
+    //qDebug() << endl << s.c_str() << endl;
+    QThread::msleep(10);
     *arduinoPort() << s;
     flags()->reset(ARDUINO_MOV_FIN);
     servoDegs.clear();

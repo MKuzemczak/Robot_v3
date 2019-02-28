@@ -74,6 +74,8 @@ class StraightLineMovAction : public BaseAction
 {
     Eigen::Vector3d starting,
                     destination;
+    int speed;
+    bool speedChanged;
 
     Lista<Lista<int>> pathInServoDegs;
 
@@ -82,6 +84,7 @@ public:
 
     StraightLineMovAction(Eigen::Vector3d start,
                           Eigen::Vector3d dest,
+                          int spd,
                           SerialPort * port,
                           Flags * flags);
     ~StraightLineMovAction()
@@ -99,13 +102,15 @@ public:
 class FreeMovAction : public BaseAction
 {
     Eigen::Vector3d destination;
-
+    int speed;
+    bool speedChanged;
     Lista<int> destInServoDegs;
 
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     FreeMovAction(Eigen::Vector3d dest,
+                  int spd,
                   SerialPort * port,
                   Flags * flags);
     ~FreeMovAction();
@@ -120,14 +125,15 @@ class ArchMovAction : public BaseAction
     Eigen::Vector3d starting,
                     intermediate,
                     destination;
-
-
+    int speed;
+    bool speedChanged;
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     ArchMovAction(Eigen::Vector3d start,
                   Eigen::Vector3d inter,
                   Eigen::Vector3d dest,
+                  int spd,
                   SerialPort * port,
                   Flags * flags);
 
@@ -166,12 +172,15 @@ public:
 class SetSingleJointAction : public BaseAction
 {
     int joint,
-        angleDeg;
+        angleDeg,
+        speed;
     bool constTCPlocationFlag;
+    bool speedChanged;
     Lista<Lista<int>> pathInServoDegs;
 
 public:
-    SetSingleJointAction(int j, int deg, bool TCP,
+    SetSingleJointAction(int j, int deg, int spd,
+                         bool TCP,
                          SerialPort * port,
                          Flags * flags);
     ~SetSingleJointAction();
@@ -186,7 +195,8 @@ class ConstTCPOrientAction : public BaseAction
 {
     Eigen::Vector3d starting,
                     destination;
-
+    int speed;
+    bool speedChanged;
     Lista<Lista<int>> pathInServoDegs;
 
 public:
@@ -194,6 +204,7 @@ public:
 
     ConstTCPOrientAction(Eigen::Vector3d start,
                          Eigen::Vector3d dest,
+                         int spd,
                          SerialPort * port,
                          Flags * flags);
     ~ConstTCPOrientAction();
@@ -226,9 +237,11 @@ class setAllAnglesAction : public BaseAction
 {
     Lista<int> angles;
     Lista<int> servoDegs;
-
+    int speed;
+    bool speedChanged;
 public:
     setAllAnglesAction(Lista<int>,
+                       int,
                        SerialPort*,
                        Flags*);
     ~setAllAnglesAction();

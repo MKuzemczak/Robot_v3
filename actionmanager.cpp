@@ -297,34 +297,54 @@ int ActionManager::size()
 }
 
 void ActionManager::addStraightLineMovAction(Eigen::Vector3d & start,
-                              Eigen::Vector3d & dest)
+                                             Eigen::Vector3d & dest,
+                                             int spd)
 {
-    actions.push_back(new StraightLineMovAction(start, dest, arduinoPort, flags));
+    actions.push_back(new StraightLineMovAction(start,
+                                                dest,
+                                                spd,
+                                                arduinoPort,
+                                                flags));
     actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
     emit writeToTerminal("akcja ruchu po linii prostej dodana");
 }
 
-void ActionManager::addFreeMovAction(Eigen::Vector3d & dest)
+void ActionManager::addFreeMovAction(Eigen::Vector3d & dest,
+                                     int spd)
 {
-    actions.push_back(new FreeMovAction(dest, arduinoPort, flags));
+    actions.push_back(new FreeMovAction(dest,
+                                        spd,
+                                        arduinoPort,
+                                        flags));
     actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
     emit writeToTerminal("Akcja ruchu wolnego dodana");
 
 }
 
 void ActionManager::addArchMovAction(Eigen::Vector3d start,
-                      Eigen::Vector3d inter,
-                      Eigen::Vector3d dest)
+                                     Eigen::Vector3d inter,
+                                     Eigen::Vector3d dest,
+                                     int spd)
 {
-    actions.push_back(new ArchMovAction(start, inter, dest, arduinoPort, flags));
+    actions.push_back(new ArchMovAction(start,
+                                        inter,
+                                        dest,
+                                        spd,
+                                        arduinoPort,
+                                        flags));
     actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
     emit writeToTerminal("Akcja ruchu po łuku dodana");
 }
 
 void ActionManager::addConstTCPOrientAction(Eigen::Vector3d & start,
-                             Eigen::Vector3d & dest)
+                                            Eigen::Vector3d & dest,
+                                            int spd)
 {
-    actions.push_back(new ConstTCPOrientAction(start, dest, arduinoPort, flags));
+    actions.push_back(new ConstTCPOrientAction(start,
+                                               dest,
+                                               spd,
+                                               arduinoPort,
+                                               flags));
     actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
     emit writeToTerminal("Akcja ruchu ze stałą orientacją ostatniego członu dodana");
 #ifdef DEBUG_ACTION_MANAGER
@@ -333,9 +353,17 @@ void ActionManager::addConstTCPOrientAction(Eigen::Vector3d & start,
 #endif
 }
 
-void ActionManager::addSetSingleJointAction(int joint, int thetaDeg, bool constTCPlocation)
+void ActionManager::addSetSingleJointAction(int joint,
+                                            int thetaDeg,
+                                            int spd,
+                                            bool constTCPlocation)
 {
-    actions.push_back(new SetSingleJointAction(joint, thetaDeg, constTCPlocation, arduinoPort, flags));
+    actions.push_back(new SetSingleJointAction(joint,
+                                               thetaDeg,
+                                               spd,
+                                               constTCPlocation,
+                                               arduinoPort,
+                                               flags));
     actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
     emit writeToTerminal("Akcja ustawienia jednego przegubu dodana");
 }
@@ -347,9 +375,13 @@ void ActionManager::addGripperAction(int set)
     emit writeToTerminal("Akcja chwytaka dodana");
 }
 
-void ActionManager::addSetAllAnglesAction(Lista<int> l)
+void ActionManager::addSetAllAnglesAction(Lista<int> l,
+                                          int spd)
 {
-    actions.push_back(new setAllAnglesAction(l, arduinoPort, flags));
+    actions.push_back(new setAllAnglesAction(l,
+                                             spd,
+                                             arduinoPort,
+                                             flags));
     actions[static_cast<int>(actions.size()) - 1]->setParentThreadPtr(this->thread());
     emit writeToTerminal("Akcja ustawiania wszytskich przegubów dodana");
 }

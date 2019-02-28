@@ -2,7 +2,8 @@
 
 #define DEBUG_SETSINGLE
 
-SetSingleJointAction::SetSingleJointAction(int j, int deg, bool TCP,
+SetSingleJointAction::SetSingleJointAction(int j, int deg, int spd,
+                                           bool TCP,
                                            SerialPort * port,
                                            Flags * flags)
 {
@@ -10,9 +11,9 @@ SetSingleJointAction::SetSingleJointAction(int j, int deg, bool TCP,
 
     joint = j;
     angleDeg = deg;
+    speed = spd;
     setArduinoPortPtr(port);
     setFlagsPtr(flags);
-
     constTCPlocationFlag = TCP;
 }
 
@@ -23,6 +24,12 @@ SetSingleJointAction::~SetSingleJointAction()
 
 bool SetSingleJointAction::calculate(Robot & robot)
 {
+    if(speed != robot.getSpeed())
+    {
+        robot.setSpeed(speed);
+        speedChanged = true;
+    }
+
     if(constTCPlocationFlag)
     {
         int currentThetaDeg = static_cast<int>(robot.getJointThetaRad(joint) / DEG_TO_RAD);
@@ -76,28 +83,43 @@ bool SetSingleJointAction::calculate(Robot & robot)
 
 void SetSingleJointAction::execute()
 {
-    std::string s;
-
-    s = "B";
-
-    for (int j = 0; j < static_cast<int>(pathInServoDegs[0].size()); j++)
+    if(speedChanged)
     {
-        s += std::to_string(pathInServoDegs[0][j]) + "\n";
+        std::string s;
+
+        s = "F";
+        s += std::to_string(10-speed);
+        s += "\n";
+
+        while (!flags()->isSet(ARDUINO_MOV_FIN)) ;
+        *arduinoPort() << s;
+        speedChanged = false;
     }
+    else
+    {
+        std::string s;
 
-    s += 'C';
+        s = "B";
 
-    while (!flags()->isSet(ARDUINO_MOV_FIN)) ;
+        for (int j = 0; j < static_cast<int>(pathInServoDegs[0].size()); j++)
+        {
+            s += std::to_string(pathInServoDegs[0][j]) + "\n";
+        }
 
-    *arduinoPort() << s;
+        s += 'C';
+
+        while (!flags()->isSet(ARDUINO_MOV_FIN)) ;
+
+        *arduinoPort() << s;
 
 #ifdef DEBUG_SETSINGLE
-    qDebug() << s.c_str();
-    qDebug() << "SetSingleJointAction::pathInServoDegs.size() == " << static_cast<int>(pathInServoDegs.size());
+        qDebug() << s.c_str();
+        qDebug() << "SetSingleJointAction::pathInServoDegs.size() == " << static_cast<int>(pathInServoDegs.size());
 #endif
 
-    flags()->reset(ARDUINO_MOV_FIN);
-    pathInServoDegs.erase(0);
+        flags()->reset(ARDUINO_MOV_FIN);
+        pathInServoDegs.erase(0);
+    }
 
     if (pathInServoDegs.size() == 0)
     {

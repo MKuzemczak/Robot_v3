@@ -71,6 +71,9 @@ void Program::testRobotInit()
     qDebug() << "Program::testRObotInit() : start";
 #endif
 
+    std::string s;
+    s = "F" + std::to_string(robot.getSpeed()) + "\n";
+    *arduinoPort << s;
     *arduinoPort << robot.getBasePos();
 
     robot.setTCPOrient(robot.getJointLocation(robot.getDOF() - 1) - robot.getTCPlocation());
@@ -107,25 +110,25 @@ void Program::testRun()
     v0 << 200, 50, 0;
     v1 << 150, 50, 0;
 
-    manager->addConstTCPOrientAction(robotBase, v0);
-    manager->addSetSingleJointAction(4, -150, true);
-    manager->addConstTCPOrientAction(v0, v1);
-    manager->addSetSingleJointAction(4, -179, true);
+    manager->addConstTCPOrientAction(robotBase, v0, 9);
+    manager->addSetSingleJointAction(4, -150, 9, true);
+    manager->addConstTCPOrientAction(v0, v1, 9);
+    manager->addSetSingleJointAction(4, -179, 9, true);
     manager->addGripperAction(400);
     v0 << 150, -30, 0;
-    manager->addConstTCPOrientAction(v1, v0);
+    manager->addConstTCPOrientAction(v1, v0, 9);
     manager->addGripperAction(550);
-    manager->addConstTCPOrientAction(v0, v1);
+    manager->addConstTCPOrientAction(v0, v1, 9);
     v0 << 150, 50, 50;
-    manager->addConstTCPOrientAction(v1, v0);
+    manager->addConstTCPOrientAction(v1, v0, 9);
     v1 << 150, -30, 50;
-    manager->addConstTCPOrientAction(v0, v1);
+    manager->addConstTCPOrientAction(v0, v1, 9);
     manager->addGripperAction(400);
-    manager->addConstTCPOrientAction(v1, v0);
+    manager->addConstTCPOrientAction(v1, v0, 9);
     v1 << 150, 50, 0;
-    manager->addConstTCPOrientAction(v0, v1);
-    manager->addSetSingleJointAction(4, -90, true);
-    manager->addStraightLineMovAction(v1, robotBase);
+    manager->addConstTCPOrientAction(v0, v1, 9);
+    manager->addSetSingleJointAction(4, -90, 9, true);
+    manager->addStraightLineMovAction(v1, robotBase, 9);
 
 
 
@@ -153,7 +156,8 @@ void Program::addAction(ActionType type, QString info)
     if(type == STRAIGHT_LINE || type == FREE || type == CONST_STRAIGHT)
     {
         int p1 = s.at(0).mid(1).toInt(),
-                p2 = s.at(1).mid(1).toInt();
+                p2 = s.at(1).mid(1).toInt(),
+                speed = s.at(2).toInt();
 
         Eigen::Vector3d start, end;
         start << (*pointList)(p1, 0), (*pointList)(p1, 1), (*pointList)(p1, 2);
@@ -162,13 +166,13 @@ void Program::addAction(ActionType type, QString info)
         switch(type)
         {
         case STRAIGHT_LINE:
-            manager->addStraightLineMovAction(start, end);
+            manager->addStraightLineMovAction(start, end, speed);
             break;
         case FREE:
-            manager->addFreeMovAction(end);
+            manager->addFreeMovAction(end, speed);
             break;
         case CONST_STRAIGHT:
-            manager->addConstTCPOrientAction(start, end);
+            manager->addConstTCPOrientAction(start, end, speed);
             break;
         default:
             ;
@@ -178,12 +182,14 @@ void Program::addAction(ActionType type, QString info)
     {
         int p1 = s.at(0).mid(1).toInt(),
                 p2 = s.at(1).mid(1).toInt(),
-                p3 = s.at(2).mid(1).toInt();
+                p3 = s.at(2).mid(1).toInt(),
+                speed = s.at(3).toInt();
 
         Eigen::Vector3d start, mid, end;
         start << (*pointList)(p1, 0), (*pointList)(p1, 1), (*pointList)(p1, 2);
         mid << (*pointList)(p2, 0), (*pointList)(p2, 1), (*pointList)(p2, 2);
-        mid << (*pointList)(p3, 0), (*pointList)(p3, 1), (*pointList)(p3, 2);
+        end << (*pointList)(p3, 0), (*pointList)(p3, 1), (*pointList)(p3, 2);
+        manager->addArchMovAction(start, mid, end, speed);
     }
     else if (type == DELAY)
     {
@@ -192,12 +198,16 @@ void Program::addAction(ActionType type, QString info)
     else if(type == SINGLE)
     {
         int joint = s.at(0).toInt(),
-                angle = s.at(1).toInt();
-        bool constTCPlocation = s.at(2).toInt();
+                angle = s.at(1).toInt(),
+                speed = s.at(2).toInt();
+        bool constTCPlocation = s.at(3).toInt();
 
         qDebug() << "Angle: " << angle;
 
-        manager->addSetSingleJointAction(joint, angle, constTCPlocation);
+        manager->addSetSingleJointAction(joint,
+                                         angle,
+                                         speed,
+                                         constTCPlocation);
     }
     else if (type == GRIPPER)
     {
@@ -207,12 +217,12 @@ void Program::addAction(ActionType type, QString info)
     {
         Lista<int> angles;
 
-        for(int i = 0; i < static_cast<int>(s.size()); i++)
+        for(int i = 0; i < static_cast<int>(s.size()) - 1; i++)
         {
             angles.push_back(s.at(i).toInt());
         }
 
-        manager->addSetAllAnglesAction(angles);
+        manager->addSetAllAnglesAction(angles, s.at(s.size() - 1).toInt());
     }
 }
 
@@ -355,7 +365,7 @@ void Program::scanConfig()
                 robot.setGripperMinMax(slist0[1].toInt(), slist0[2].toInt());
                 robot.setGripper(slist0[3].toInt());
             }
-            if (slist0[0] == "BASE")
+            else if (slist0[0] == "BASE")
             {
                 QString s;
                 if(slist0.size() != robot.getServoAmount() + 2)
@@ -376,6 +386,10 @@ void Program::scanConfig()
                 }
 
             }
+            else if(slist0[0] == "speed")
+            {
+                robot.setSpeed(slist0[1].toInt());
+            }
         }
     }
 }
@@ -390,7 +404,7 @@ void Program::setRobot(int x, int y , int z)
     Eigen::Vector3d d;
     d << x, y, z;
 
-    ConstTCPOrientAction action(robot.getTCPlocation(), d, arduinoPort, flags);
+    ConstTCPOrientAction action(robot.getTCPlocation(), d, 10, arduinoPort, flags);
 
     if(!action.calculate(robot))
     {

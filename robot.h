@@ -24,7 +24,8 @@ class Robot
 
     int gripperSetting,
         gripperMin,
-        gripperMax;
+        gripperMax,
+        servoSpeed;
 
     Eigen::Vector3d TCPOrient;
 
@@ -111,6 +112,9 @@ public:
 
     QString getBasePos();
     void setBasePos(QString);
+
+    void setSpeed(int);
+    int getSpeed();
     /////////////////////////////////////////////////////////////// !setter & getters & adders
 
 };

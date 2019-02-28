@@ -4,6 +4,7 @@
 
 StraightLineMovAction::StraightLineMovAction(Eigen::Vector3d start,
                                              Eigen::Vector3d dest,
+                                             int spd,
                                              SerialPort * port,
                                              Flags * flags)
 {
@@ -11,13 +12,19 @@ StraightLineMovAction::StraightLineMovAction(Eigen::Vector3d start,
 
     starting = start;
     destination = dest;
-
+    speed = spd;
     setArduinoPortPtr(port);
     setFlagsPtr(flags);
 }
 
 bool StraightLineMovAction::calculate(Robot & robot)
 {
+    if(speed != robot.getSpeed())
+    {
+        robot.setSpeed(speed);
+        speedChanged = true;
+    }
+
     Lista<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> path;
 
     lerp(path);
@@ -81,33 +88,47 @@ bool StraightLineMovAction::calculate(Robot & robot)
 
 void StraightLineMovAction::execute()
 {
-    std::string s;
-
-
-    s = "B";
-
-    for (int j = 0; j < static_cast<int>(pathInServoDegs[0].size()); j++)
+    if(speedChanged)
     {
-        s += std::to_string(pathInServoDegs[0][j]) + "\n";
+        std::string s;
+
+        s = "F";
+        s += std::to_string(10-speed);
+        s += "\n";
+
+        while (!flags()->isSet(ARDUINO_MOV_FIN)) ;
+        *arduinoPort() << s;
+        speedChanged = false;
+    }
+    else
+    {
+        std::string s;
+
+        s = "B";
+
+        for (int j = 0; j < static_cast<int>(pathInServoDegs[0].size()); j++)
+        {
+            s += std::to_string(pathInServoDegs[0][j]) + "\n";
 
 #ifdef DEBUG_STRAIGHT_LINE_ACTION
-        qDebug("%d ", pathInServoDegs[0][j]);
+            qDebug("%d ", pathInServoDegs[0][j]);
 #endif // DEBUG_STRAIGHT_LINE_ACTION
 
-    }
+        }
 
-    s += 'C';
+        s += 'C';
 
 #ifdef DEBUG_STRAIGHT_LINE_ACTION
-    qDebug("\n");
+        qDebug("\n");
 #endif
 
 
-    while (!flags()->isSet(ARDUINO_MOV_FIN)) ;
+        while (!flags()->isSet(ARDUINO_MOV_FIN)) ;
 
-    *arduinoPort() << s;
-    flags()->reset(ARDUINO_MOV_FIN);
-    pathInServoDegs.erase(0);
+        *arduinoPort() << s;
+        flags()->reset(ARDUINO_MOV_FIN);
+        pathInServoDegs.erase(0);
+    }
 
     if (pathInServoDegs.size() == 0)
     {
